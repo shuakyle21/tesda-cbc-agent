@@ -1,0 +1,106 @@
+<!-- @dsCard group="Screens" -->
+<meta charset="utf-8">
+<title>Screen — Projects</title>
+<link rel="stylesheet" href="../tokens.css">
+<svg style="display:none">
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></symbol>
+</svg>
+<style>
+  svg[viewBox] { stroke-width:2; stroke:currentColor; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+  .screen { max-width:720px; margin-bottom:32px; }
+  .hd { display:flex; align-items:center; margin-bottom:16px; }
+  .hd h2 { font-size:var(--text-xl); font-weight:600; margin:0; }
+  .hd .sp { margin-left:auto; }
+  .prow { display:flex; align-items:center; gap:12px; height:40px; padding:0 12px;
+          border-bottom:1px solid var(--color-border-faint); font-size:var(--text-base); }
+  .prow:last-child { border-bottom:0; }
+  .prow:nth-child(even) { background:var(--color-surface-alt); }
+  .prow:hover { background:var(--color-surface-raised); }
+  .prow__t { font-weight:500; }
+  .prow__c { font-family:var(--font-mono); font-size:var(--text-xs);
+             color:var(--color-text-secondary); }
+  .empty svg { stroke-width:1.75; }
+</style>
+
+<h1 class="pv-title">Screen &mdash; Projects</h1>
+<p class="pv-sub">
+  <code>/</code>. Deliberately thin: the project list exists so a trainer can find their way
+  back to a run, not to be a dashboard. Title &middot; mono qualification code &middot; mono
+  created date &middot; latest-run outcome badge.
+</p>
+
+<span class="pv-label">state: loaded</span>
+<div class="screen">
+  <div class="hd">
+    <h2>Projects</h2>
+    <span class="sp"><button class="btn btn--primary"><svg viewBox="0 0 24 24"><use href="#i-plus"/></svg>New project</button></span>
+  </div>
+  <div class="rowlist">
+    <div class="prow">
+      <span class="prow__t">Prepare Bakery Products</span>
+      <span class="prow__c">BPP NC II</span>
+      <span class="prow__c" style="margin-left:auto">16 Aug 2026</span>
+      <span class="badge badge--partial">PARTIAL</span>
+    </div>
+    <div class="prow">
+      <span class="prow__t">Organic Agriculture Production</span>
+      <span class="prow__c">OAP NC II</span>
+      <span class="prow__c" style="margin-left:auto">14 Aug 2026</span>
+      <span class="badge badge--succeeded">COMPLETE</span>
+    </div>
+    <div class="prow">
+      <span class="prow__t">Bread and Pastry Production</span>
+      <span class="prow__c">BPP NC I</span>
+      <span class="prow__c" style="margin-left:auto">11 Aug 2026</span>
+      <span class="badge badge--job-failed">RUN FAILED</span>
+    </div>
+    <div class="prow">
+      <span class="prow__t">Food Processing</span>
+      <span class="prow__c">FPR NC II</span>
+      <span class="prow__c" style="margin-left:auto">09 Aug 2026</span>
+      <span class="badge badge--queued">NO RUNS</span>
+    </div>
+  </div>
+</div>
+
+<span class="pv-label">state: empty</span>
+<div class="screen">
+  <div class="hd"><h2>Projects</h2></div>
+  <div class="rowlist">
+    <div class="empty">
+      <svg viewBox="0 0 24 24"><use href="#i-folder"/></svg>
+      <p class="empty__h">No projects yet</p>
+      <p class="empty__p">Create a project, then upload a TESDA Training Regulation PDF
+        to generate its CBC documents.</p>
+      <button class="btn btn--primary"><svg viewBox="0 0 24 24"><use href="#i-plus"/></svg>New project</button>
+    </div>
+  </div>
+</div>
+
+<span class="pv-label">New project &mdash; modal, not a route</span>
+<div class="modal">
+  <h3 class="modal__h">New project</h3>
+  <div class="field">
+    <label for="np-t">Title</label>
+    <input class="input" id="np-t" placeholder="Prepare Bakery Products">
+  </div>
+  <div class="field">
+    <label for="np-c">Qualification code <span style="color:var(--color-text-secondary)">(optional)</span></label>
+    <input class="input mono" id="np-c" placeholder="BPP NC II">
+  </div>
+  <div class="modal__actions">
+    <button class="btn">Cancel</button>
+    <button class="btn btn--primary">Create</button>
+  </div>
+</div>
+
+<hr class="pv-rule">
+<p class="pv-note">
+  <strong>A modal, not a fifth route.</strong> Two fields do not justify a page, and a modal
+  returns the trainer to the list with the new project already in place — no navigation, no
+  lost context.
+  <br><br>
+  Note the badge column tells the truth at a glance: <code>PARTIAL</code> is amber, not green,
+  even though that job's status is <code>done</code>.
+</p>

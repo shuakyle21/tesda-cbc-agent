@@ -1,0 +1,78 @@
+<!-- @dsCard group="Foundations" -->
+<meta charset="utf-8">
+<title>Spacing, Radius, Shadow</title>
+<link rel="stylesheet" href="../tokens.css">
+<style>
+  .bar4 { background:var(--color-blue-lt); border:1px solid var(--color-blue-border);
+          height:16px; border-radius:var(--radius-sm); }
+  .rowline { display:flex; align-items:center; gap:12px; margin-bottom:6px; font-size:var(--text-sm); }
+  .tag { font-family:var(--font-mono); font-size:var(--text-xs);
+         color:var(--color-text-secondary); width:88px; flex:none; }
+  .rbox { width:88px; height:64px; background:var(--color-surface);
+          border:1px solid var(--color-border); display:flex; align-items:center;
+          justify-content:center; font-family:var(--font-mono); font-size:var(--text-xs);
+          color:var(--color-text-secondary); }
+  .sbox { width:120px; height:72px; background:var(--color-surface);
+          border:1px solid var(--color-border); border-radius:var(--radius-lg);
+          display:flex; align-items:center; justify-content:center;
+          font-family:var(--font-mono); font-size:var(--text-xs);
+          color:var(--color-text-secondary); }
+  .hbox { background:var(--color-blue-lt); border:1px solid var(--color-blue-border);
+          border-radius:var(--radius-sm); width:180px;
+          display:flex; align-items:center; padding-left:8px;
+          font-family:var(--font-mono); font-size:var(--text-xs); color:var(--color-blue-dk); }
+</style>
+
+<h1 class="pv-title">Spacing, Radius, Shadow</h1>
+<p class="pv-sub">
+  4px base grid. Radius hard-ceilinged at 12px — anything larger reads as consumer app rather
+  than government tooling. Shadows are minimal and <strong>never tinted</strong>; structure
+  comes from borders and background contrast, not elevation.
+</p>
+
+<h2 class="pv-section">Spacing — 4px grid</h2>
+<div class="pv-panel" style="max-width:640px">
+  <div class="rowline"><span class="tag">2px</span><div class="bar4" style="width:2px"></div><span>icon-to-text only</span></div>
+  <div class="rowline"><span class="tag">4px</span><div class="bar4" style="width:4px"></div><span>tight internal padding</span></div>
+  <div class="rowline"><span class="tag">8px</span><div class="bar4" style="width:8px"></div><span>small component padding</span></div>
+  <div class="rowline"><span class="tag">12px</span><div class="bar4" style="width:12px"></div><span>card section gaps</span></div>
+  <div class="rowline"><span class="tag">16px</span><div class="bar4" style="width:16px"></div><span><strong>card padding</strong></span></div>
+  <div class="rowline"><span class="tag">20px</span><div class="bar4" style="width:20px"></div><span>header to body</span></div>
+  <div class="rowline"><span class="tag">24px</span><div class="bar4" style="width:24px"></div><span>between cards</span></div>
+  <div class="rowline"><span class="tag">32px</span><div class="bar4" style="width:32px"></div><span>between page sections</span></div>
+  <div class="rowline"><span class="tag">48px</span><div class="bar4" style="width:48px"></div><span>page section breaks</span></div>
+  <div class="rowline"><span class="tag">64px</span><div class="bar4" style="width:64px"></div><span>max &mdash; used sparingly</span></div>
+</div>
+
+<h2 class="pv-section">Radius — 12px hard ceiling</h2>
+<div class="pv-grid">
+  <div class="rbox" style="border-radius:3px">3px</div>
+  <div class="rbox" style="border-radius:6px">6px<br></div>
+  <div class="rbox" style="border-radius:8px">8px</div>
+  <div class="rbox" style="border-radius:12px">12px</div>
+  <div class="rbox" style="border-radius:9999px">full</div>
+</div>
+<p class="pv-note">
+  3px sub-elements &middot; 6px badges &middot; 8px cards, inputs, buttons &middot; 12px modals
+  &middot; full for pills and toggles. <strong>Nothing above 12px on a rectangular surface.</strong>
+</p>
+
+<h2 class="pv-section">Shadow — never tinted, never coloured</h2>
+<div class="pv-grid">
+  <div class="sbox" style="box-shadow:none">none<br>table rows</div>
+  <div class="sbox" style="box-shadow:0 1px 2px rgba(15,14,11,0.06)">sm<br>cards at rest</div>
+  <div class="sbox" style="box-shadow:0 2px 6px rgba(15,14,11,0.08),0 1px 2px rgba(15,14,11,0.04)">md<br>hover</div>
+  <div class="sbox" style="box-shadow:0 4px 16px rgba(15,14,11,0.10),0 2px 4px rgba(15,14,11,0.06)">lg<br>modals</div>
+</div>
+<p class="pv-note">Flat surfaces, no gradients. Table rows get no shadow — alternating backgrounds do the work.</p>
+
+<h2 class="pv-section">Component heights</h2>
+<div class="pv-panel" style="max-width:520px">
+  <div class="rowline"><span class="tag">40px</span><div class="hbox" style="height:40px">row</div></div>
+  <div class="rowline"><span class="tag">36px</span><div class="hbox" style="height:36px">tab</div></div>
+  <div class="rowline"><span class="tag">32px</span><div class="hbox" style="height:32px">input / button</div></div>
+  <div class="rowline"><span class="tag">26px</span><div class="hbox" style="height:26px">button-sm</div></div>
+  <div class="rowline"><span class="tag">20px</span><div class="hbox" style="height:20px">badge</div></div>
+  <div class="rowline"><span class="tag">6px</span><div class="hbox" style="height:6px"></div><span style="font-size:var(--text-xs)">progress bar</span></div>
+</div>
+<p class="pv-note">Inputs and buttons are <strong>32px &mdash; never 36 or 40</strong>. This is what makes the UI read as dense-but-not-crowded.</p>

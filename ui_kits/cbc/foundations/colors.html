@@ -1,0 +1,121 @@
+<!-- @dsCard group="Foundations" -->
+<meta charset="utf-8">
+<title>Colors</title>
+<link rel="stylesheet" href="../tokens.css">
+<style>
+  .sw { display:flex; align-items:center; gap:8px; font-size:var(--text-sm); margin-bottom:4px; }
+  .chip { width:40px; height:24px; border-radius:var(--radius-sm);
+          border:1px solid var(--color-border); flex:none; }
+  .hex { font-family:var(--font-mono); font-size:var(--text-xs); color:var(--color-text-secondary); }
+  table { border-collapse:collapse; font-size:var(--text-sm); }
+  th,td { text-align:left; padding:6px 12px 6px 0; }
+  th { font-size:var(--text-xs); text-transform:uppercase; letter-spacing:0.04em;
+       color:var(--color-text-secondary); font-weight:500; }
+  .pass { color:var(--color-green-dk); font-weight:500; }
+  .fail { color:var(--color-red-dk); font-weight:500; }
+</style>
+
+<h1 class="pv-title">Colors</h1>
+<p class="pv-sub">
+  Four semantic families, <strong>one meaning each, no exceptions</strong>. CAMS also defines
+  Teal and Purple; both are ruled out here — see the bottom of this page.
+</p>
+
+<h2 class="pv-section">Semantic — one meaning each</h2>
+<div class="pv-grid">
+  <div class="pv-cell pv-panel">
+    <span class="pv-label">Blue &mdash; info + active</span>
+    <div class="sw"><span class="chip" style="background:#185FA5"></span><span class="hex">#185FA5</span> base</div>
+    <div class="sw"><span class="chip" style="background:#E6F1FB"></span><span class="hex">#E6F1FB</span> lt</div>
+    <div class="sw"><span class="chip" style="background:#0C447C"></span><span class="hex">#0C447C</span> dk</div>
+    <div class="sw"><span class="chip" style="background:#B5D0EE"></span><span class="hex">#B5D0EE</span> border</div>
+    <div class="sw"><span class="chip" style="background:#D4E8F8"></span><span class="hex">#D4E8F8</span> hover</div>
+  </div>
+  <div class="pv-cell pv-panel">
+    <span class="pv-label">Green &mdash; succeeded / ok</span>
+    <div class="sw"><span class="chip" style="background:#3B6D11"></span><span class="hex">#3B6D11</span> base</div>
+    <div class="sw"><span class="chip" style="background:#EAF3DE"></span><span class="hex">#EAF3DE</span> lt</div>
+    <div class="sw"><span class="chip" style="background:#27500A"></span><span class="hex">#27500A</span> dk</div>
+    <div class="sw"><span class="chip" style="background:#B5D98A"></span><span class="hex">#B5D98A</span> border</div>
+    <div class="sw"><span class="chip" style="background:#D5EBB8"></span><span class="hex">#D5EBB8</span> hover</div>
+  </div>
+  <div class="pv-cell pv-panel">
+    <span class="pv-label">Amber &mdash; partial / retrying</span>
+    <div class="sw"><span class="chip" style="background:#C7600F"></span><span class="hex">#C7600F</span> base</div>
+    <div class="sw"><span class="chip" style="background:#FCE6CC"></span><span class="hex">#FCE6CC</span> lt</div>
+    <div class="sw"><span class="chip" style="background:#7A3806"></span><span class="hex">#7A3806</span> dk</div>
+    <div class="sw"><span class="chip" style="background:#F2B673"></span><span class="hex">#F2B673</span> border</div>
+    <div class="sw"><span class="chip" style="background:#F8D4A8"></span><span class="hex">#F8D4A8</span> hover</div>
+  </div>
+  <div class="pv-cell pv-panel">
+    <span class="pv-label">Red &mdash; failed / rejected</span>
+    <div class="sw"><span class="chip" style="background:#C81F1F"></span><span class="hex">#C81F1F</span> base</div>
+    <div class="sw"><span class="chip" style="background:#FCE4E4"></span><span class="hex">#FCE4E4</span> lt</div>
+    <div class="sw"><span class="chip" style="background:#8B1414"></span><span class="hex">#8B1414</span> dk</div>
+    <div class="sw"><span class="chip" style="background:#ED9999"></span><span class="hex">#ED9999</span> border</div>
+    <div class="sw"><span class="chip" style="background:#F6C2C2"></span><span class="hex">#F6C2C2</span> hover</div>
+  </div>
+</div>
+
+<h2 class="pv-section">Neutrals</h2>
+<div class="pv-grid">
+  <div class="pv-cell pv-panel">
+    <span class="pv-label">Surfaces</span>
+    <div class="sw"><span class="chip" style="background:#F5F4F0"></span><span class="hex">#F5F4F0</span> bg &mdash; warm, never clinical white</div>
+    <div class="sw"><span class="chip" style="background:#FFFFFF"></span><span class="hex">#FFFFFF</span> surface</div>
+    <div class="sw"><span class="chip" style="background:#EEECEA"></span><span class="hex">#EEECEA</span> surface-alt</div>
+    <div class="sw"><span class="chip" style="background:#FAF9F6"></span><span class="hex">#FAF9F6</span> surface-raised</div>
+    <div class="sw"><span class="chip" style="background:#D8D6D0"></span><span class="hex">#D8D6D0</span> border</div>
+    <div class="sw"><span class="chip" style="background:#B0AEA8"></span><span class="hex">#B0AEA8</span> border-strong</div>
+    <div class="sw"><span class="chip" style="background:#E8E6E2"></span><span class="hex">#E8E6E2</span> border-faint</div>
+  </div>
+  <div class="pv-cell pv-panel">
+    <span class="pv-label">Text</span>
+    <div class="sw"><span class="chip" style="background:#18180F"></span><span class="hex">#18180F</span> primary</div>
+    <div class="sw"><span class="chip" style="background:#5A5950"></span><span class="hex">#5A5950</span> secondary</div>
+    <div class="sw"><span class="chip" style="background:#97968E"></span><span class="hex">#97968E</span> muted &mdash; <span class="fail">fails AA</span></div>
+    <div class="sw"><span class="chip" style="background:#C4C2BC"></span><span class="hex">#C4C2BC</span> disabled</div>
+  </div>
+</div>
+
+<h2 class="pv-section">Measured contrast</h2>
+<p class="pv-note">Computed, not inherited. Three findings drive real rules — see DESIGN.md &sect;11.</p>
+<table>
+  <tr><th>Pair</th><th>Ratio</th><th>AA normal</th><th>AA large / UI</th></tr>
+  <tr><td>Blue dk on lt</td><td class="hex">8.60</td><td class="pass">pass</td><td class="pass">pass</td></tr>
+  <tr><td>Green dk on lt</td><td class="hex">8.21</td><td class="pass">pass</td><td class="pass">pass</td></tr>
+  <tr><td>Amber dk on lt</td><td class="hex">7.23</td><td class="pass">pass</td><td class="pass">pass</td></tr>
+  <tr><td>Red dk on lt</td><td class="hex">7.86</td><td class="pass">pass</td><td class="pass">pass</td></tr>
+  <tr><td>text-primary on bg</td><td class="hex">16.22</td><td class="pass">pass</td><td class="pass">pass</td></tr>
+  <tr><td>text-secondary on bg</td><td class="hex">6.40</td><td class="pass">pass</td><td class="pass">pass</td></tr>
+  <tr><td><strong>text-muted on bg</strong></td><td class="hex">2.70</td><td class="fail">FAIL</td><td class="fail">FAIL</td></tr>
+  <tr><td><strong>amber base on bg</strong></td><td class="hex">3.74</td><td class="fail">FAIL</td><td class="pass">pass</td></tr>
+</table>
+
+<div class="callout callout--warning" style="max-width:640px; margin-top:24px">
+  <div>
+    <strong>Finding 1.</strong> <code>text-muted</code> fails AA and must never carry meaning.
+    Anything a trainer needs to read uses <code>text-secondary</code>.<br><br>
+    <strong>Finding 2.</strong> Amber base is not a text colour on the page background — icons,
+    borders and bar fills only. Amber text always sits on <code>amber-lt</code>.<br><br>
+    <strong>Finding 3.</strong> <code>amber-lt</code> and <code>red-lt</code> differ by a
+    contrast ratio of <strong>1.00</strong>. Badge fill alone cannot separate
+    <em>retried</em> from <em>failed</em> — the icon and label do it.
+  </div>
+</div>
+
+<h2 class="pv-section">Ruled out</h2>
+<div class="pv-grid">
+  <div class="pv-cell pv-panel" style="opacity:0.55">
+    <span class="pv-label">Teal &mdash; forbidden</span>
+    <div class="sw"><span class="chip" style="background:#0F6E56"></span><span class="hex">#0F6E56</span></div>
+    <p class="pv-note" style="margin:8px 0 0">CFSP-exclusive in CAMS. This app has no program dimension.</p>
+  </div>
+  <div class="pv-cell pv-panel" style="opacity:0.55">
+    <span class="pv-label">Purple &mdash; forbidden</span>
+    <div class="sw"><span class="chip" style="background:#534AB7"></span><span class="hex">#534AB7</span></div>
+    <p class="pv-note" style="margin:8px 0 0">NC-level-exclusive in CAMS. Nothing here compares NC levels;
+    the code is an identifier and mono type already marks it.</p>
+  </div>
+</div>
+<p class="pv-note"><strong>Variety is not a design goal. One meaning per colour is.</strong></p>

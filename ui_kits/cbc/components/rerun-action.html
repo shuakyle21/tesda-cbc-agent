@@ -1,0 +1,78 @@
+<!-- @dsCard group="Forms & Upload" -->
+<meta charset="utf-8">
+<title>Re-run Action</title>
+<link rel="stylesheet" href="../tokens.css">
+<svg style="display:none">
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4"/><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4"/><path d="M12 16h.01"/></symbol>
+</svg>
+<style>
+  .btn svg, .callout svg { stroke-width:2; stroke:currentColor; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+  .fakerow { display:flex; align-items:center; gap:8px; height:32px; padding:0 12px;
+             border-bottom:1px solid var(--color-border-faint); font-size:var(--text-sm); }
+</style>
+
+<h1 class="pv-title">Re-run Action &amp; Confirm</h1>
+<p class="pv-sub">
+  One control per run, whole-job only. The confirmation exists because the action is more
+  destructive than it looks.
+</p>
+
+<h2 class="pv-section">Button states</h2>
+<div class="pv-grid">
+  <div class="pv-cell"><span class="pv-label">default</span>
+    <button class="btn"><svg viewBox="0 0 24 24"><use href="#i-refresh"/></svg>Re-run generation</button></div>
+  <div class="pv-cell"><span class="pv-label">disabled &mdash; a job is already running</span>
+    <button class="btn" disabled title="A run is already in progress for this project">
+      <svg viewBox="0 0 24 24"><use href="#i-refresh"/></svg>Re-run generation</button></div>
+</div>
+
+<h2 class="pv-section">Confirm dialog</h2>
+<div class="modal" role="dialog" aria-modal="true" aria-labelledby="rr-h">
+  <h3 class="modal__h" id="rr-h">Re-run generation?</h3>
+  <p class="modal__p">
+    This starts a completely new run &mdash; all <span class="mono">26</span> documents are
+    regenerated, including the <span class="mono">24</span> that succeeded.
+    <strong>There is no way to retry just the failed sections.</strong>
+  </p>
+  <div class="modal__actions">
+    <button class="btn">Cancel</button>
+    <button class="btn btn--primary"><svg viewBox="0 0 24 24"><use href="#i-refresh"/></svg>Re-run</button>
+  </div>
+</div>
+
+<h2 class="pv-section">Why the confirmation is not boilerplate</h2>
+<div class="callout callout--warning" style="max-width:700px">
+  <svg viewBox="0 0 24 24"><use href="#i-alert"/></svg>
+  <div>
+    Re-running burns the full free-tier call budget again (~26 LLM calls minimum) to recover
+    two documents, and it produces a second complete set of 26 rows that the results view then
+    has to disambiguate. The trainer should know that before clicking, not after.
+  </div>
+</div>
+
+<h2 class="pv-section">The anti-pattern</h2>
+<p class="pv-note">
+  Below is what a generator will build by default, and it must not exist. There is no
+  per-section retry API — only whole-job re-generation. A per-row button
+  <strong>could only ever restart all 26</strong>, so its label is a lie no matter what it says.
+</p>
+<div class="rowlist" style="max-width:560px;opacity:0.6">
+  <div class="fakerow" style="text-decoration:line-through">
+    <span>Task Sheet &middot; <span class="mono">LO-3</span></span>
+    <span style="margin-left:auto"><button class="btn btn--sm" disabled>Retry this section</button></span>
+  </div>
+  <div class="fakerow" style="text-decoration:line-through">
+    <span>Answer Key &middot; <span class="mono">LO-4</span></span>
+    <span style="margin-left:auto"><button class="btn btn--sm" disabled>Retry this section</button></span>
+  </div>
+</div>
+<p class="pv-note" style="color:var(--color-red-dk)"><strong>Do not build this.</strong></p>
+
+<hr class="pv-rule">
+<p class="pv-note">
+  <strong>a11y:</strong> <code>role="dialog" aria-modal="true"</code>, focus trapped while open,
+  focus returns to the triggering button on close, <kbd>Esc</kbd> cancels. The disabled button
+  keeps its tooltip reachable — never remove the control entirely, or the trainer cannot tell
+  whether re-running is possible.
+</p>

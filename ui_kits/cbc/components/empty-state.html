@@ -1,0 +1,73 @@
+<!-- @dsCard group="Status & Feedback" -->
+<meta charset="utf-8">
+<title>Empty State</title>
+<link rel="stylesheet" href="../tokens.css">
+<svg style="display:none">
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2"/></symbol>
+  <symbol id="i-files" viewBox="0 0 24 24"><path d="M15 3v4a1 1 0 0 0 1 1h4"/><path d="M18 17h-7a2 2 0 0 1 -2 -2v-10a2 2 0 0 1 2 -2h4l5 5v7a2 2 0 0 1 -2 2z"/><path d="M16 17v2a2 2 0 0 1 -2 2h-7a2 2 0 0 1 -2 -2v-10a2 2 0 0 1 2 -2h2"/></symbol>
+  <symbol id="i-loader" viewBox="0 0 24 24"><path d="M12 6v-3"/><path d="M18 12h3"/><path d="M12 18v3"/><path d="M6 12h-3"/></symbol>
+  <symbol id="i-hist" viewBox="0 0 24 24"><path d="M12 8v4l3 3"/><path d="M3.05 11a9 9 0 1 1 .5 4"/><path d="M3 20v-5h5"/></symbol>
+</svg>
+<style>
+  .empty svg { stroke-width:1.75; stroke:currentColor; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+  .frame { background:var(--color-surface); border:1px solid var(--color-border);
+           border-radius:var(--radius-lg); }
+</style>
+
+<h1 class="pv-title">Empty State</h1>
+<p class="pv-sub">
+  Carried over unchanged: 32px muted icon, <code>text-md</code> 500 heading,
+  <code>text-sm</code> sub-text at max-width 320px, 48px vertical padding, optional CTA.
+  <strong>Every empty state says what to do next</strong> — that is the whole point of the
+  component.
+</p>
+
+<h2 class="pv-section">All four</h2>
+<div class="pv-grid">
+  <div class="pv-cell frame" style="width:340px">
+    <span class="pv-label" style="padding:12px 12px 0;display:block">no projects</span>
+    <div class="empty">
+      <svg viewBox="0 0 24 24"><use href="#i-folder"/></svg>
+      <p class="empty__h">No projects yet</p>
+      <p class="empty__p">Create a project, then upload a TESDA Training Regulation PDF
+        to generate its CBC documents.</p>
+      <button class="btn btn--primary">New project</button>
+    </div>
+  </div>
+
+  <div class="pv-cell frame" style="width:340px">
+    <span class="pv-label" style="padding:12px 12px 0;display:block">documents &mdash; run in progress</span>
+    <div class="empty">
+      <svg viewBox="0 0 24 24"><use href="#i-loader"/></svg>
+      <p class="empty__h">Nothing to download yet</p>
+      <p class="empty__p">Documents will appear here as the run completes.</p>
+    </div>
+  </div>
+
+  <div class="pv-cell frame" style="width:340px">
+    <span class="pv-label" style="padding:12px 12px 0;display:block">documents &mdash; never run</span>
+    <div class="empty">
+      <svg viewBox="0 0 24 24"><use href="#i-files"/></svg>
+      <p class="empty__h">No documents yet</p>
+      <p class="empty__p">Upload a TR PDF and run generation.</p>
+      <button class="btn">Go to upload</button>
+    </div>
+  </div>
+
+  <div class="pv-cell frame" style="width:340px">
+    <span class="pv-label" style="padding:12px 12px 0;display:block">prior runs</span>
+    <div class="empty">
+      <svg viewBox="0 0 24 24"><use href="#i-hist"/></svg>
+      <p class="empty__h">No earlier runs</p>
+      <p class="empty__p">This is the first run for this project.</p>
+    </div>
+  </div>
+</div>
+
+<hr class="pv-rule">
+<p class="pv-note">
+  <strong>Sub-text is <code>text-secondary</code>, not <code>text-muted</code>.</strong>
+  The parent system uses muted here, but muted measures 2.70 against the page background and
+  fails WCAG AA outright. The sub-line is the instruction — it is the most important sentence
+  on an otherwise blank screen, so it cannot be the least readable one.
+</p>

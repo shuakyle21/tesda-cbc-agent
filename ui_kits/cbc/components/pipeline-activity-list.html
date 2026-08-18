@@ -1,0 +1,189 @@
+<!-- @dsCard group="Pipeline" -->
+<meta charset="utf-8">
+<title>Pipeline Activity List</title>
+<link rel="stylesheet" href="../tokens.css">
+<style>
+  .icon { width:16px; height:16px; stroke-width:2; stroke:currentColor; fill:none;
+          stroke-linecap:round; stroke-linejoin:round; }
+</style>
+
+<svg style="display:none">
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12l5 5l10 -10"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4v16l13 -8z"/></symbol>
+  <symbol id="i-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24">
+    <path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4"/>
+    <path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24">
+    <circle cx="12" cy="12" r="9"/><path d="M12 8v4"/><path d="M12 16h.01"/></symbol>
+</svg>
+
+<h1 class="pv-title">Pipeline Activity List</h1>
+<p class="pv-sub">
+  The centerpiece. Renders collapsed <code>job_events</code> as the run trace — and it is what
+  <strong>replaces the stepper</strong>. A fixed-stage stepper would encode an ordering
+  guarantee the validator&rarr;drafter retry edge breaks (DESIGN.md &sect;2, Truth 2).
+</p>
+
+<p class="pv-note">
+  <strong>Data rule.</strong> Collapse to the latest row per <code>(node_name, lo_id)</code> —
+  the pair, not the node. Order by pipeline stage then <code>lo_id</code>,
+  <strong>never by <code>created_at</code></strong>: that is what makes rows update in place
+  instead of jumping whenever a retry lands.
+</p>
+
+<h2 class="pv-section">Row states</h2>
+<p class="pv-note">
+  Every state, side by side. Note <code>retried</code> (amber) and
+  <code>failed-after-retries</code> (red): their badge fills differ by a contrast ratio of
+  <strong>1.00</strong> — near-identical. The <strong>icon and label</strong> carry the
+  distinction, never the color (DESIGN.md &sect;11, Finding 3).
+</p>
+
+<div class="rowlist" style="max-width:720px">
+  <div class="row row--pending">
+    <svg class="icon row__icon"><use href="#i-circle"/></svg>
+    <span class="row__name">Export</span>
+    <span class="row__phrase">waiting</span>
+    <span class="row__spacer"></span>
+    <span class="row__meta">&mdash;</span>
+  </div>
+  <div class="row row--active">
+    <svg class="icon row__icon pulse"><use href="#i-play"/></svg>
+    <span class="row__name">CBLM Sections</span>
+    <span class="row__lo">LO-3</span>
+    <span class="row__phrase">drafting 4 sections</span>
+    <span class="row__spacer"></span>
+    <span class="row__meta">running</span>
+  </div>
+  <div class="row row--succeeded">
+    <svg class="icon row__icon"><use href="#i-check"/></svg>
+    <span class="row__name">Parser</span>
+    <span class="row__phrase">succeeded</span>
+    <span class="row__spacer"></span>
+    <span class="row__meta">4s</span>
+  </div>
+  <div class="row row--retried">
+    <svg class="icon row__icon"><use href="#i-refresh"/></svg>
+    <span class="row__name">Session Plan</span>
+    <span class="row__lo">LO-2</span>
+    <span class="row__phrase">failed validation, retrying</span>
+    <span class="row__spacer"></span>
+    <span class="row__meta">(1/2)</span>
+  </div>
+  <div class="row row--failed">
+    <svg class="icon row__icon"><use href="#i-alert"/></svg>
+    <span class="row__name">CBLM Sections</span>
+    <span class="row__lo">LO-4</span>
+    <span class="row__phrase">failed after 2 retries &mdash; continuing</span>
+    <span class="row__spacer"></span>
+    <span class="row__meta">(2/2)</span>
+  </div>
+  <div class="row row--failed">
+    <svg class="icon row__icon"><use href="#i-alert"/></svg>
+    <span class="row__name">Retriever</span>
+    <span class="row__phrase">run stopped here</span>
+    <span class="row__spacer"></span>
+    <span class="row__meta">failed</span>
+  </div>
+</div>
+
+<h2 class="pv-section">Colour-blind check — same rows, fill removed</h2>
+<p class="pv-note">
+  Desaturated to prove the icon and label alone separate <em>retrying</em> from <em>failed</em>.
+  If these two rows are ambiguous here, the design is unreadable under protan/deutan vision.
+</p>
+<div class="rowlist" style="max-width:720px; filter:grayscale(1)">
+  <div class="row row--retried">
+    <svg class="icon row__icon"><use href="#i-refresh"/></svg>
+    <span class="row__name">Session Plan</span>
+    <span class="row__lo">LO-2</span>
+    <span class="row__phrase">failed validation, retrying</span>
+    <span class="row__spacer"></span><span class="row__meta">(1/2)</span>
+  </div>
+  <div class="row row--failed">
+    <svg class="icon row__icon"><use href="#i-alert"/></svg>
+    <span class="row__name">CBLM Sections</span>
+    <span class="row__lo">LO-4</span>
+    <span class="row__phrase">failed after 2 retries &mdash; continuing</span>
+    <span class="row__spacer"></span><span class="row__meta">(2/2)</span>
+  </div>
+</div>
+
+<hr class="pv-rule">
+
+<h2 class="pv-section">Variant: <code>live</code> — mid-run, 5-LO competency</h2>
+<p class="pv-note">
+  The real shape: ~19&ndash;24 rows for one competency. Ordered by pipeline stage, then LO.
+  LO-2's retry sits <em>in place</em> below LO-1's success — it did not jump to the bottom.
+</p>
+
+<div class="rowlist" style="max-width:720px" role="log" aria-live="polite" aria-relevant="text">
+  <div class="row row--succeeded"><svg class="icon row__icon"><use href="#i-check"/></svg>
+    <span class="row__name">Parser</span><span class="row__phrase">succeeded</span>
+    <span class="row__spacer"></span><span class="row__meta">4s</span></div>
+  <div class="row row--succeeded"><svg class="icon row__icon"><use href="#i-check"/></svg>
+    <span class="row__name">Retriever</span><span class="row__phrase">succeeded</span>
+    <span class="row__spacer"></span><span class="row__meta">2s</span></div>
+  <div class="row row--succeeded"><svg class="icon row__icon"><use href="#i-check"/></svg>
+    <span class="row__name">CBC Module</span><span class="row__phrase">succeeded</span>
+    <span class="row__spacer"></span><span class="row__meta">0.1s</span></div>
+  <div class="row row--succeeded"><svg class="icon row__icon"><use href="#i-check"/></svg>
+    <span class="row__name">Session Plan</span><span class="row__lo">LO-1</span>
+    <span class="row__phrase">succeeded</span>
+    <span class="row__spacer"></span><span class="row__meta">11s</span></div>
+  <div class="row row--retried"><svg class="icon row__icon"><use href="#i-refresh"/></svg>
+    <span class="row__name">Session Plan</span><span class="row__lo">LO-2</span>
+    <span class="row__phrase">failed validation, retrying</span>
+    <span class="row__spacer"></span><span class="row__meta">(1/2)</span></div>
+  <div class="row row--active" aria-current="true">
+    <svg class="icon row__icon pulse"><use href="#i-play"/></svg>
+    <span class="row__name">Session Plan</span><span class="row__lo">LO-3</span>
+    <span class="row__phrase">drafting</span>
+    <span class="row__spacer"></span><span class="row__meta">running</span></div>
+  <div class="row row--pending"><svg class="icon row__icon"><use href="#i-circle"/></svg>
+    <span class="row__name">Session Plan</span><span class="row__lo">LO-4</span>
+    <span class="row__phrase">waiting</span>
+    <span class="row__spacer"></span><span class="row__meta">&mdash;</span></div>
+  <div class="row row--pending"><svg class="icon row__icon"><use href="#i-circle"/></svg>
+    <span class="row__name">Session Plan</span><span class="row__lo">LO-5</span>
+    <span class="row__phrase">waiting</span>
+    <span class="row__spacer"></span><span class="row__meta">&mdash;</span></div>
+  <div class="row row--pending"><svg class="icon row__icon"><use href="#i-circle"/></svg>
+    <span class="row__name">CBLM Sections</span><span class="row__lo">LO-1</span>
+    <span class="row__phrase">waiting</span>
+    <span class="row__spacer"></span><span class="row__meta">&mdash;</span></div>
+  <div class="row row--pending"><svg class="icon row__icon"><use href="#i-circle"/></svg>
+    <span class="row__name">Export</span><span class="row__phrase">waiting</span>
+    <span class="row__spacer"></span><span class="row__meta">&mdash;</span></div>
+</div>
+
+<h2 class="pv-section">Variant: <code>historical</code> — terminal run</h2>
+<p class="pv-note">No pulse, no pacing inference, no active row. Same rows, frozen.</p>
+<div class="rowlist" style="max-width:720px">
+  <div class="row row--succeeded"><svg class="icon row__icon"><use href="#i-check"/></svg>
+    <span class="row__name">Parser</span><span class="row__phrase">succeeded</span>
+    <span class="row__spacer"></span><span class="row__meta">4s</span></div>
+  <div class="row row--succeeded"><svg class="icon row__icon"><use href="#i-check"/></svg>
+    <span class="row__name">Session Plan</span><span class="row__lo">LO-2</span>
+    <span class="row__phrase">succeeded on retry</span>
+    <span class="row__spacer"></span><span class="row__meta">19s</span></div>
+  <div class="row row--failed"><svg class="icon row__icon"><use href="#i-alert"/></svg>
+    <span class="row__name">CBLM Sections</span><span class="row__lo">LO-4</span>
+    <span class="row__phrase">failed after 2 retries &mdash; continuing</span>
+    <span class="row__spacer"></span><span class="row__meta">(2/2)</span></div>
+  <div class="row row--succeeded"><svg class="icon row__icon"><use href="#i-check"/></svg>
+    <span class="row__name">Export</span><span class="row__phrase">succeeded</span>
+    <span class="row__spacer"></span><span class="row__meta">6s</span></div>
+</div>
+
+<hr class="pv-rule">
+<p class="pv-note">
+  <strong>Never rendered here:</strong> tenacity/backoff activity. Transport-level retries are
+  Layer&nbsp;1 plumbing and are invisible when they work (DESIGN.md &sect;2, Truth 4). The only
+  retry a trainer ever sees is the validation retry above, which is meaningful.
+  <br><br>
+  <strong>a11y:</strong> <code>role="log" aria-live="polite" aria-relevant="text"</code>,
+  <code>aria-current="true"</code> on the active row. Diff before announcing — a 2&nbsp;s poll
+  must not re-announce unchanged rows.
+</p>

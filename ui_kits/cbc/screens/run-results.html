@@ -1,0 +1,155 @@
+<!-- @dsCard group="Screens" -->
+<meta charset="utf-8">
+<title>Screen — Results</title>
+<link rel="stylesheet" href="../tokens.css">
+<svg style="display:none">
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"/></symbol>
+  <symbol id="i-fileoff" viewBox="0 0 24 24"><path d="M3 3l18 18"/><path d="M7 3h7l5 5v7m-2 4h-10a2 2 0 0 1 -2 -2v-14"/></symbol>
+  <symbol id="i-ext" viewBox="0 0 24 24"><path d="M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6"/><path d="M11 13l9 -9"/><path d="M15 4h5v5"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="M6 9l6 6l6 -6"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12l5 5l10 -10"/></symbol>
+  <symbol id="i-tri" viewBox="0 0 24 24"><path d="M12 9v4"/><path d="M10.4 4.6l-8 14a1.7 1.7 0 0 0 1.5 2.5h16.2a1.7 1.7 0 0 0 1.5 -2.5l-8 -14a1.7 1.7 0 0 0 -3 0z"/><path d="M12 17h.01"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4"/><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/></symbol>
+</svg>
+<style>
+  svg[viewBox] { stroke-width:2; stroke:currentColor; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+  .badge svg { stroke-width:2.5; }
+  .screen { max-width:720px; margin-bottom:32px; }
+  .hd { display:flex; align-items:baseline; margin-bottom:16px; }
+  .hd h2 { font-size:var(--text-xl); font-weight:600; margin:0; }
+  .runhd { display:flex; align-items:center; gap:8px; height:40px; padding:0 12px;
+           background:var(--color-surface-alt); border-bottom:1px solid var(--color-border);
+           font-size:var(--text-md); font-weight:500; }
+  .runhd--old { opacity:0.6; background:var(--color-bg); }
+  .chev--open { transform:rotate(180deg); }
+  .gap { height:16px; }
+</style>
+
+<h1 class="pv-title">Screen &mdash; Results</h1>
+<p class="pv-sub">
+  <code>/projects/[id]/documents</code>. Outcome banner, then documents grouped
+  <strong>by run first</strong>, then by Learning Outcome.
+</p>
+
+<div class="callout callout--info" style="max-width:720px;margin-bottom:32px">
+  <div>
+    <strong>Why grouped by run.</strong> <code>GET /projects/{id}/documents</code> takes no job
+    filter, so a second run returns 52 rows with nothing distinguishing them. Grouping by run
+    resolves that with zero backend change; the latest is expanded and earlier runs collapse to
+    a single &ldquo;superseded&rdquo; line.
+  </div>
+</div>
+
+<span class="pv-label">state: partial &mdash; two runs</span>
+<div class="screen">
+  <div class="hd"><h2>Documents</h2></div>
+
+  <div class="callout callout--warning" role="status" style="margin-bottom:16px">
+    <svg viewBox="0 0 24 24"><use href="#i-tri"/></svg>
+    <div style="flex:1">
+      <p style="font-size:var(--text-md);font-weight:500;margin:0 0 4px">Completed with gaps
+        &mdash; <span class="mono">24</span> of <span class="mono">26</span> documents generated.</p>
+      <ul style="margin:8px 0 0;padding:0;list-style:none;font-size:var(--text-sm)">
+        <li style="padding:3px 0;border-top:1px solid currentColor;opacity:0.9">Task Sheet &middot; <span class="mono">LO-3</span> &mdash; failed validation after 2 retries</li>
+        <li style="padding:3px 0;border-top:1px solid currentColor;opacity:0.9">Answer Key &middot; <span class="mono">LO-4</span> &mdash; failed validation after 2 retries</li>
+      </ul>
+      <div style="margin-top:12px"><button class="btn"><svg viewBox="0 0 24 24"><use href="#i-refresh"/></svg>Re-run generation</button></div>
+    </div>
+  </div>
+
+  <div class="rowlist">
+    <div class="runhd">Run 2 &mdash; <span class="mono" style="font-weight:400">16 Aug 2026, 14:02</span>
+      <span style="margin-left:auto"><span class="badge badge--partial">PARTIAL</span></span></div>
+
+    <div class="doc"><svg class="doc__icon" viewBox="0 0 24 24"><use href="#i-file"/></svg>
+      <span class="doc__label">CBC Module</span><svg class="doc__ext" viewBox="0 0 24 24"><use href="#i-ext"/></svg>
+      <span style="margin-left:auto"><span class="badge badge--ok">OK</span></span></div>
+
+    <div class="lohead"><svg style="width:16px;height:16px;color:var(--color-text-secondary)" viewBox="0 0 24 24"><use href="#i-chev"/></svg>
+      <span class="lohead__chip">LO-1</span><span class="lohead__title">Prepare bakery products</span>
+      <span class="lohead__count">5 / 5</span>
+      <span style="margin-left:8px"><span class="badge badge--ok">OK</span></span></div>
+
+    <div class="lohead"><svg style="width:16px;height:16px;color:var(--color-text-secondary)" viewBox="0 0 24 24"><use href="#i-chev"/></svg>
+      <span class="lohead__chip">LO-2</span><span class="lohead__title">Decorate and present bakery products</span>
+      <span class="lohead__count">5 / 5</span>
+      <span style="margin-left:8px"><span class="badge badge--ok">OK</span></span></div>
+
+    <div class="lohead"><svg class="chev--open" style="width:16px;height:16px;color:var(--color-text-secondary)" viewBox="0 0 24 24"><use href="#i-chev"/></svg>
+      <span class="lohead__chip">LO-3</span><span class="lohead__title">Perform pre-operative checks</span>
+      <span class="lohead__count">4 / 5</span>
+      <span style="margin-left:8px"><span class="badge badge--partial">PARTIAL</span></span></div>
+    <div class="doc"><svg class="doc__icon" viewBox="0 0 24 24"><use href="#i-file"/></svg>
+      <span class="doc__label">Session Plan</span><svg class="doc__ext" viewBox="0 0 24 24"><use href="#i-ext"/></svg>
+      <span style="margin-left:auto"><span class="badge badge--ok">OK</span></span></div>
+    <div class="doc"><svg class="doc__icon" viewBox="0 0 24 24"><use href="#i-file"/></svg>
+      <span class="doc__label">Information Sheet</span><svg class="doc__ext" viewBox="0 0 24 24"><use href="#i-ext"/></svg>
+      <span style="margin-left:auto"><span class="badge badge--ok">OK</span></span></div>
+    <div class="doc doc--missing"><svg class="doc__icon" viewBox="0 0 24 24"><use href="#i-fileoff"/></svg>
+      <span class="doc__label">Task Sheet &mdash; not generated, validation failed after 2 retries</span>
+      <span style="margin-left:auto"><span class="badge badge--failed-after-retries">NOT GENERATED</span></span></div>
+    <div class="doc"><svg class="doc__icon" viewBox="0 0 24 24"><use href="#i-file"/></svg>
+      <span class="doc__label">Self-Check</span><svg class="doc__ext" viewBox="0 0 24 24"><use href="#i-ext"/></svg>
+      <span style="margin-left:auto"><span class="badge badge--ok">OK</span></span></div>
+    <div class="doc"><svg class="doc__icon" viewBox="0 0 24 24"><use href="#i-file"/></svg>
+      <span class="doc__label">Answer Key</span><svg class="doc__ext" viewBox="0 0 24 24"><use href="#i-ext"/></svg>
+      <span style="margin-left:auto"><span class="badge badge--ok">OK</span></span></div>
+
+    <div class="lohead"><svg style="width:16px;height:16px;color:var(--color-text-secondary)" viewBox="0 0 24 24"><use href="#i-chev"/></svg>
+      <span class="lohead__chip">LO-4</span><span class="lohead__title">Store bakery products</span>
+      <span class="lohead__count">4 / 5</span>
+      <span style="margin-left:8px"><span class="badge badge--partial">PARTIAL</span></span></div>
+
+    <div class="lohead"><svg style="width:16px;height:16px;color:var(--color-text-secondary)" viewBox="0 0 24 24"><use href="#i-chev"/></svg>
+      <span class="lohead__chip">LO-5</span><span class="lohead__title">Package bakery products</span>
+      <span class="lohead__count">5 / 5</span>
+      <span style="margin-left:8px"><span class="badge badge--ok">OK</span></span></div>
+
+    <div class="runhd runhd--old">Run 1 &mdash; <span class="mono" style="font-weight:400">15 Aug 2026, 09:41</span>
+      <span style="font-size:var(--text-sm);font-weight:400;color:var(--color-text-secondary);margin-left:8px">superseded</span>
+      <span style="margin-left:auto"><span class="badge badge--job-failed">RUN FAILED</span></span></div>
+  </div>
+</div>
+
+<span class="pv-label">state: all-ok</span>
+<div class="screen">
+  <div class="hd"><h2>Documents</h2></div>
+  <div class="callout callout--success" role="status" style="margin-bottom:16px">
+    <svg viewBox="0 0 24 24"><use href="#i-check"/></svg>
+    <div><p style="font-size:var(--text-md);font-weight:500;margin:0">All 26 documents generated.</p></div>
+  </div>
+  <div class="rowlist">
+    <div class="runhd">Run 1 &mdash; <span class="mono" style="font-weight:400">14 Aug 2026, 11:20</span>
+      <span style="margin-left:auto"><span class="badge badge--ok">COMPLETE</span></span></div>
+    <div class="doc"><svg class="doc__icon" viewBox="0 0 24 24"><use href="#i-file"/></svg>
+      <span class="doc__label">CBC Module</span><svg class="doc__ext" viewBox="0 0 24 24"><use href="#i-ext"/></svg>
+      <span style="margin-left:auto"><span class="badge badge--ok">OK</span></span></div>
+    <div class="lohead"><svg style="width:16px;height:16px;color:var(--color-text-secondary)" viewBox="0 0 24 24"><use href="#i-chev"/></svg>
+      <span class="lohead__chip">LO-1</span><span class="lohead__title">Apply organic farming principles</span>
+      <span class="lohead__count">5 / 5</span>
+      <span style="margin-left:8px"><span class="badge badge--ok">OK</span></span></div>
+    <div class="lohead"><svg style="width:16px;height:16px;color:var(--color-text-secondary)" viewBox="0 0 24 24"><use href="#i-chev"/></svg>
+      <span class="lohead__chip">LO-2</span><span class="lohead__title">Prepare organic fertiliser</span>
+      <span class="lohead__count">5 / 5</span>
+      <span style="margin-left:8px"><span class="badge badge--ok">OK</span></span></div>
+  </div>
+</div>
+
+<span class="pv-label">state: empty &mdash; run still going</span>
+<div class="screen">
+  <div class="hd"><h2>Documents</h2></div>
+  <div class="rowlist">
+    <div class="empty">
+      <svg style="stroke-width:1.75" viewBox="0 0 24 24"><use href="#i-file"/></svg>
+      <p class="empty__h">Nothing to download yet</p>
+      <p class="empty__p">Documents will appear here as the run completes.</p>
+    </div>
+  </div>
+</div>
+
+<p class="pv-note">
+  <strong>26 rows is the reason for the accordion.</strong> One run-level CBC Module plus five
+  LO groups of five. Groups with a gap default to expanded and carry a
+  <code>PARTIAL</code> badge, so the trainer lands on what needs attention without opening
+  anything.
+</p>

@@ -1,0 +1,99 @@
+<!-- @dsCard group="Status & Feedback" -->
+<meta charset="utf-8">
+<title>Status Badge</title>
+<link rel="stylesheet" href="../tokens.css">
+<svg style="display:none">
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12l5 5l10 -10"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4"/><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4"/><path d="M12 16h.01"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4v16l13 -8z"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></symbol>
+  <symbol id="i-tri" viewBox="0 0 24 24"><path d="M12 9v4"/><path d="M10.4 4.6l-8 14a1.7 1.7 0 0 0 1.5 2.5h16.2a1.7 1.7 0 0 0 1.5 -2.5l-8 -14a1.7 1.7 0 0 0 -3 0z"/><path d="M12 17h.01"/></symbol>
+</svg>
+<style>
+  svg[class="badge-i"] { stroke-width:2.5; stroke:currentColor; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+  .badge svg { stroke-width:2.5; stroke:currentColor; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+</style>
+
+<h1 class="pv-title">Status Badge</h1>
+<p class="pv-sub">
+  20px height, 2px/8px padding, 6px radius, <code>text-xs</code> mono 500. Non-interactive —
+  no click, no tooltip. Never resized to fit text; truncate the label instead.
+</p>
+
+<h2 class="pv-section">All variants</h2>
+<div class="pv-grid">
+  <div class="pv-cell"><span class="pv-label">job / node lifecycle</span>
+    <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-start">
+      <span class="badge badge--queued" aria-label="Status: queued">QUEUED</span>
+      <span class="badge badge--started" aria-label="Status: started"><svg viewBox="0 0 24 24"><use href="#i-play"/></svg>STARTED</span>
+      <span class="badge badge--succeeded" aria-label="Status: succeeded"><svg viewBox="0 0 24 24"><use href="#i-check"/></svg>SUCCEEDED</span>
+      <span class="badge badge--retried" aria-label="Status: retrying"><svg viewBox="0 0 24 24"><use href="#i-refresh"/></svg>RETRIED</span>
+      <span class="badge badge--failed" aria-label="Status: failed"><svg viewBox="0 0 24 24"><use href="#i-alert"/></svg>FAILED</span>
+    </div>
+  </div>
+  <div class="pv-cell"><span class="pv-label">document outcome</span>
+    <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-start">
+      <span class="badge badge--ok" aria-label="Document: generated"><svg viewBox="0 0 24 24"><use href="#i-check"/></svg>OK</span>
+      <span class="badge badge--failed-after-retries" aria-label="Document: not generated after retries"><svg viewBox="0 0 24 24"><use href="#i-alert"/></svg>NOT GENERATED</span>
+    </div>
+  </div>
+  <div class="pv-cell"><span class="pv-label">run outcome</span>
+    <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-start">
+      <span class="badge badge--succeeded" aria-label="Run: all documents generated"><svg viewBox="0 0 24 24"><use href="#i-check"/></svg>COMPLETE</span>
+      <span class="badge badge--partial" aria-label="Run: completed with gaps"><svg viewBox="0 0 24 24"><use href="#i-tri"/></svg>PARTIAL</span>
+      <span class="badge badge--job-failed" aria-label="Run: failed"><svg viewBox="0 0 24 24"><use href="#i-alert"/></svg>RUN FAILED</span>
+    </div>
+  </div>
+</div>
+
+<div class="callout callout--warning" style="max-width:660px;margin-top:24px">
+  <svg viewBox="0 0 24 24" style="stroke-width:2;stroke:currentColor;fill:none;stroke-linecap:round;stroke-linejoin:round"><use href="#i-tri"/></svg>
+  <div>
+    <strong><code>partial</code> is new</strong> — the parent CAMS system has no partial concept.
+    It is amber because amber already means &ldquo;warning tier / moderate urgency&rdquo;, and
+    &ldquo;completed with gaps&rdquo; is exactly that shape.
+    <strong>Do not invent a fifth colour for it.</strong>
+  </div>
+</div>
+
+<h2 class="pv-section">Why <code>retried</code> is amber, not red</h2>
+<p class="pv-note">
+  A validation retry is the pipeline <strong>working</strong> — it is the graded conditional
+  branching doing its job. Red would misrepresent correct behaviour as an error.
+  Amber says &ldquo;watch this&rdquo;; red says &ldquo;this is broken.&rdquo;
+</p>
+
+<h2 class="pv-section">Fill alone cannot carry retried vs failed</h2>
+<p class="pv-note">
+  <code>amber-lt #FCE6CC</code> and <code>red-lt #FCE4E4</code> differ by a contrast ratio of
+  <strong>1.00</strong>. Below: normal, then desaturated. The icon and label must survive the
+  loss of colour — and they do.
+</p>
+<div class="pv-grid">
+  <div class="pv-cell pv-panel">
+    <span class="pv-label">as designed</span>
+    <div style="display:flex;gap:8px">
+      <span class="badge badge--retried"><svg viewBox="0 0 24 24"><use href="#i-refresh"/></svg>RETRIED</span>
+      <span class="badge badge--failed"><svg viewBox="0 0 24 24"><use href="#i-alert"/></svg>FAILED</span>
+    </div>
+  </div>
+  <div class="pv-cell pv-panel" style="filter:grayscale(1)">
+    <span class="pv-label">grayscale &mdash; still distinct</span>
+    <div style="display:flex;gap:8px">
+      <span class="badge badge--retried"><svg viewBox="0 0 24 24"><use href="#i-refresh"/></svg>RETRIED</span>
+      <span class="badge badge--failed"><svg viewBox="0 0 24 24"><use href="#i-alert"/></svg>FAILED</span>
+    </div>
+  </div>
+</div>
+
+<h2 class="pv-section">Truncation</h2>
+<p class="pv-note">Never grow the badge to fit. Truncate at 22ch with an ellipsis.</p>
+<span class="badge badge--failed-after-retries">NOT GENERATED &mdash; VALIDATION FAILED AFTER TWO RETRIES</span>
+
+<hr class="pv-rule">
+<p class="pv-note">
+  <strong>a11y:</strong> every badge carries an <code>aria-label</code> spelling the status out
+  in full — the visible label is abbreviated and uppercase, which screen readers handle poorly.
+  Never stack more than three badges horizontally.
+</p>

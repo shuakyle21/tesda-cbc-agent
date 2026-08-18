@@ -1,0 +1,99 @@
+<!-- @dsCard group="Forms & Upload" -->
+<meta charset="utf-8">
+<title>TR Upload Dropzone</title>
+<link rel="stylesheet" href="../tokens.css">
+<svg style="display:none">
+  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/><path d="M7 9l5 -5l5 5"/><path d="M12 4v12"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4"/><path d="M12 16h.01"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12l5 5l10 -10"/></symbol>
+  <symbol id="i-tri" viewBox="0 0 24 24"><path d="M12 9v4"/><path d="M10.4 4.6l-8 14a1.7 1.7 0 0 0 1.5 2.5h16.2a1.7 1.7 0 0 0 1.5 -2.5l-8 -14a1.7 1.7 0 0 0 -3 0z"/><path d="M12 17h.01"/></symbol>
+  <symbol id="i-loader" viewBox="0 0 24 24"><path d="M12 6v-3"/><path d="M16.25 7.75l2.15 -2.15"/><path d="M18 12h3"/><path d="M16.25 16.25l2.15 2.15"/><path d="M12 18v3"/><path d="M7.75 16.25l-2.15 2.15"/><path d="M6 12h-3"/><path d="M7.75 7.75l-2.15 -2.15"/></symbol>
+</svg>
+<style>
+  .drop svg, .callout svg { stroke-width:2; stroke:currentColor; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+  .spin { animation:spin 1s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .demo { max-width:520px; margin-bottom:24px; }
+</style>
+
+<h1 class="pv-title">TR Upload Dropzone</h1>
+<p class="pv-sub">
+  Where a run begins. The backend runs a cheap text-layer check <strong>inside the upload
+  request</strong> and returns 400 on failure — so rejection is synchronous, and belongs
+  in place.
+</p>
+
+<h2 class="pv-section">States</h2>
+
+<div class="demo"><span class="pv-label">idle</span>
+  <div class="drop">
+    <svg viewBox="0 0 24 24"><use href="#i-upload"/></svg>
+    <p class="drop__h">Drop a TESDA Training Regulation PDF, or browse</p>
+    <p class="drop__p">Text-layer PDF only &mdash; scanned or image-only PDFs are rejected.</p>
+  </div>
+</div>
+
+<div class="demo"><span class="pv-label">dragover</span>
+  <div class="drop drop--dragover">
+    <svg viewBox="0 0 24 24" style="color:var(--color-blue)"><use href="#i-upload"/></svg>
+    <p class="drop__h" style="color:var(--color-blue-dk)">Release to upload</p>
+    <p class="drop__p" style="color:var(--color-blue-dk)">TR &mdash; Organic Agriculture Production NC II.pdf</p>
+  </div>
+</div>
+
+<div class="demo"><span class="pv-label">validating &mdash; synchronous, same request</span>
+  <div class="drop">
+    <svg viewBox="0 0 24 24" class="spin"><use href="#i-loader"/></svg>
+    <p class="drop__h">Checking text layer&hellip;</p>
+    <p class="drop__p">First page plus one sampled page.</p>
+  </div>
+</div>
+
+<div class="demo"><span class="pv-label">rejected &mdash; red, in place, replaces the body</span>
+  <div class="drop drop--rejected">
+    <svg viewBox="0 0 24 24"><use href="#i-alert"/></svg>
+    <p class="drop__h">No text layer detected</p>
+    <p class="drop__p">This PDF appears to be scanned. Upload a digitally-typed TR PDF.</p>
+    <div style="margin-top:12px"><button class="btn btn--sm">Choose another file</button></div>
+  </div>
+</div>
+
+<div class="demo"><span class="pv-label">accepted</span>
+  <div class="drop drop--accepted">
+    <svg viewBox="0 0 24 24"><use href="#i-check"/></svg>
+    <p class="drop__h">TR &mdash; Organic Agriculture Production NC II.pdf</p>
+    <p class="drop__p"><span class="mono">2.4 MB</span> &middot; <span class="mono">91</span> pages
+      &middot; text layer present</p>
+    <div style="margin-top:12px"><button class="btn btn--sm">Change file</button></div>
+  </div>
+</div>
+
+<h2 class="pv-section">Why rejection is inline and not a toast</h2>
+<p class="pv-note">
+  The check happens inside the POST, so the answer arrives while the trainer is still looking
+  at the dropzone. Their next action — pick a different file — is one click from where their
+  eyes already are. A toast puts the explanation in a corner, on a timer, away from the control
+  that caused it. The file is <strong>not retained</strong> on rejection.
+</p>
+
+<h2 class="pv-section">Companion &mdash; budget rejection</h2>
+<p class="pv-note">
+  A different failure at a different moment: this one fires on the <strong>generate step,
+  before a job exists</strong>. It is not a progress screen for a job that instantly died.
+</p>
+<div style="max-width:640px">
+  <div class="callout callout--warning">
+    <svg viewBox="0 0 24 24"><use href="#i-tri"/></svg>
+    <div>This competency is too large for the current run budget
+      (<span class="mono">62</span> estimated LLM calls; the cap is <span class="mono">40</span>).
+      Select a single competency.</div>
+  </div>
+</div>
+
+<hr class="pv-rule">
+<p class="pv-note">
+  <strong>a11y:</strong> a real <code>&lt;input type="file"&gt;</code> sits behind the dropzone —
+  keyboard reachable and screen-reader labelled. <strong>Never a div-only drop target</strong>;
+  drag-and-drop is an enhancement, not the mechanism. The rejection message is
+  <code>role="alert"</code> so it is announced when it replaces the body.
+</p>

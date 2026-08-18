@@ -1,0 +1,82 @@
+<!-- @dsCard group="Pipeline" -->
+<meta charset="utf-8">
+<title>Pacing Notice</title>
+<link rel="stylesheet" href="../tokens.css">
+<svg style="display:none">
+  <symbol id="i-clockp" viewBox="0 0 24 24"><path d="M20.94 13.045a9 9 0 1 0 -7.9 7.9"/><path d="M12 7v5l2 2"/><path d="M17 17v5"/><path d="M21 17v5"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4"/><path d="M12 16h.01"/></symbol>
+</svg>
+<style>
+  .callout svg { stroke-width:2; stroke:currentColor; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+  .bad { background:var(--color-red-lt) !important; border-color:var(--color-red-border) !important; color:var(--color-red-dk) !important; }
+</style>
+
+<h1 class="pv-title">Pacing Notice</h1>
+<p class="pv-sub">
+  The &ldquo;long silence is normal&rdquo; affordance. Token-bucket rate-limit pacing sleeps
+  deliberately to stay inside the free tier, so multi-second gaps with no visible progress are
+  the system <em>working correctly</em>.
+</p>
+
+<div class="callout callout--warning" style="max-width:660px;margin-bottom:32px">
+  <div>
+    <strong>No API field says &ldquo;waiting on rate limit.&rdquo;</strong> The token-bucket
+    sleep is internal to the worker and writes no event row — nodes write events on entry and
+    exit only. This notice is therefore <strong>client-side inference</strong>:
+    non-terminal status <em>and</em> more than N seconds since the newest event.
+  </div>
+</div>
+
+<h2 class="pv-section">States</h2>
+
+<div style="max-width:600px;margin-bottom:24px">
+  <span class="pv-label">&lt; 20s since last event &mdash; nothing shown</span>
+  <div style="border:1px dashed var(--color-border); border-radius:var(--radius-lg);
+              padding:16px; text-align:center; font-size:var(--text-sm);
+              color:var(--color-text-secondary)">
+    (no notice &mdash; the activity list is updating on its own)
+  </div>
+</div>
+
+<div style="max-width:600px;margin-bottom:24px">
+  <span class="pv-label">&gt; 20s &mdash; pacing</span>
+  <div class="callout callout--info">
+    <svg viewBox="0 0 24 24"><use href="#i-clockp"/></svg>
+    <div>Pacing LLM calls to stay inside the free-tier rate limit. This is expected &mdash;
+      a full run takes a few minutes. <span class="mono" style="opacity:0.75">34s</span></div>
+  </div>
+</div>
+
+<div style="max-width:600px;margin-bottom:24px">
+  <span class="pv-label">&gt; 90s &mdash; softened, still blue</span>
+  <div class="callout callout--info">
+    <svg viewBox="0 0 24 24"><use href="#i-clockp"/></svg>
+    <div>Still working. This run is taking longer than usual.
+      <span class="mono" style="opacity:0.75">2m 14s</span></div>
+  </div>
+</div>
+
+<h2 class="pv-section">What this must never be</h2>
+<div style="max-width:600px">
+  <span class="pv-label" style="color:var(--color-red-dk)">rejected &mdash; do not build</span>
+  <div class="callout callout--info bad">
+    <svg viewBox="0 0 24 24"><use href="#i-alert"/></svg>
+    <div>Pipeline stalled. No response for 94 seconds.</div>
+  </div>
+</div>
+<p class="pv-note">
+  <strong>Never the word &ldquo;stalled&rdquo;, and never red or amber at these thresholds.</strong>
+  Nothing in the contract proves failure — the worker may simply be holding a token. Claiming a
+  failure the system cannot observe trains the trainer to distrust the progress display, and
+  the next real failure gets ignored.
+</p>
+
+<hr class="pv-rule">
+<p class="pv-note">
+  <strong>20s / 90s are tunable constants, not design law.</strong> They are guesses until the
+  M0 structured-output smoke test reports real free-tier rate-limit behaviour. Tune against an
+  observed run.
+  <br><br>
+  <strong>Placement.</strong> Directly under the Run Progress Summary, above the activity list.
+  Appears and disappears on a 150ms fade — it must not shove the list around jarringly.
+</p>

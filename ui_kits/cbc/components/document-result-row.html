@@ -1,0 +1,96 @@
+<!-- @dsCard group="Documents" -->
+<meta charset="utf-8">
+<title>Document Result Row</title>
+<link rel="stylesheet" href="../tokens.css">
+<svg style="display:none">
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"/><path d="M9 9h1"/><path d="M9 13h6"/><path d="M9 17h6"/></symbol>
+  <symbol id="i-fileoff" viewBox="0 0 24 24"><path d="M3 3l18 18"/><path d="M7 3h7l5 5v7m-2 4h-10a2 2 0 0 1 -2 -2v-14"/></symbol>
+  <symbol id="i-ext" viewBox="0 0 24 24"><path d="M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6"/><path d="M11 13l9 -9"/><path d="M15 4h5v5"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12l5 5l10 -10"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4"/><path d="M12 16h.01"/></symbol>
+</svg>
+<style>
+  .doc svg, .badge svg, .callout svg { stroke-width:2; stroke:currentColor; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+  .badge svg { stroke-width:2.5; }
+</style>
+
+<h1 class="pv-title">Document Result Row</h1>
+<p class="pv-sub">
+  32px. Adapted from the parent system's Document Link Row — same anatomy, plus a trailing
+  status badge and a missing state.
+</p>
+
+<h2 class="pv-section">States</h2>
+<div class="rowlist" style="max-width:640px">
+  <div class="doc">
+    <svg class="doc__icon" viewBox="0 0 24 24"><use href="#i-file"/></svg>
+    <span class="doc__label">CBC Module</span>
+    <svg class="doc__ext" viewBox="0 0 24 24"><use href="#i-ext"/></svg>
+    <span style="margin-left:auto"><span class="badge badge--ok" aria-label="Document generated"><svg viewBox="0 0 24 24"><use href="#i-check"/></svg>OK</span></span>
+  </div>
+  <div class="doc">
+    <svg class="doc__icon" viewBox="0 0 24 24"><use href="#i-file"/></svg>
+    <span class="doc__label">Information Sheet</span>
+    <svg class="doc__ext" viewBox="0 0 24 24"><use href="#i-ext"/></svg>
+    <span style="margin-left:auto"><span class="badge badge--ok" aria-label="Document generated"><svg viewBox="0 0 24 24"><use href="#i-check"/></svg>OK</span></span>
+  </div>
+  <div class="doc doc--missing">
+    <svg class="doc__icon" viewBox="0 0 24 24"><use href="#i-fileoff"/></svg>
+    <span class="doc__label">Task Sheet &mdash; not generated, validation failed after 2 retries</span>
+    <span style="margin-left:auto"><span class="badge badge--failed-after-retries" aria-label="Document not generated after retries"><svg viewBox="0 0 24 24"><use href="#i-alert"/></svg>NOT GENERATED</span></span>
+  </div>
+  <div class="doc">
+    <svg class="doc__icon" viewBox="0 0 24 24"><use href="#i-file"/></svg>
+    <span class="doc__label">Self-Check</span>
+    <svg class="doc__ext" viewBox="0 0 24 24"><use href="#i-ext"/></svg>
+    <span style="margin-left:auto"><span class="badge badge--ok" aria-label="Document generated"><svg viewBox="0 0 24 24"><use href="#i-check"/></svg>OK</span></span>
+  </div>
+</div>
+
+<h2 class="pv-section">The missing state, in detail</h2>
+<div class="callout callout--info" style="max-width:700px">
+  <div>
+    When <code>status = 'failed_after_retries'</code> there is <strong>no
+    <code>download_url</code></strong> — the file does not exist. So the row shows
+    <code>ti-file-off</code>, no external-link affordance, and italic text.
+    <br><br>
+    <strong>Two things it must not have.</strong> No retry control (there is no per-section
+    retry API — see Re-run Action). And the explanation text is
+    <code>text-secondary</code>, <strong>not <code>text-muted</code></strong>: muted fails
+    WCAG AA at 2.70, and this line is the only account of what went wrong. Greying out the one
+    sentence that explains the failure is the wrong instinct, however much it looks
+    &ldquo;disabled.&rdquo;
+  </div>
+</div>
+
+<h2 class="pv-section">Full LO group &mdash; 5 documents, one gap</h2>
+<div class="rowlist" style="max-width:640px">
+  <div class="lohead">
+    <span class="lohead__chip">LO-3</span>
+    <span class="lohead__title">Perform pre-operative checks</span>
+    <span class="lohead__count">4 / 5</span>
+    <span style="margin-left:8px"><span class="badge badge--partial">PARTIAL</span></span>
+  </div>
+  <div class="doc"><svg class="doc__icon" viewBox="0 0 24 24"><use href="#i-file"/></svg>
+    <span class="doc__label">Session Plan</span><svg class="doc__ext" viewBox="0 0 24 24"><use href="#i-ext"/></svg>
+    <span style="margin-left:auto"><span class="badge badge--ok">OK</span></span></div>
+  <div class="doc"><svg class="doc__icon" viewBox="0 0 24 24"><use href="#i-file"/></svg>
+    <span class="doc__label">Information Sheet</span><svg class="doc__ext" viewBox="0 0 24 24"><use href="#i-ext"/></svg>
+    <span style="margin-left:auto"><span class="badge badge--ok">OK</span></span></div>
+  <div class="doc doc--missing"><svg class="doc__icon" viewBox="0 0 24 24"><use href="#i-fileoff"/></svg>
+    <span class="doc__label">Task Sheet &mdash; not generated, validation failed after 2 retries</span>
+    <span style="margin-left:auto"><span class="badge badge--failed-after-retries">NOT GENERATED</span></span></div>
+  <div class="doc"><svg class="doc__icon" viewBox="0 0 24 24"><use href="#i-file"/></svg>
+    <span class="doc__label">Self-Check</span><svg class="doc__ext" viewBox="0 0 24 24"><use href="#i-ext"/></svg>
+    <span style="margin-left:auto"><span class="badge badge--ok">OK</span></span></div>
+  <div class="doc"><svg class="doc__icon" viewBox="0 0 24 24"><use href="#i-file"/></svg>
+    <span class="doc__label">Answer Key</span><svg class="doc__ext" viewBox="0 0 24 24"><use href="#i-ext"/></svg>
+    <span style="margin-left:auto"><span class="badge badge--ok">OK</span></span></div>
+</div>
+
+<hr class="pv-rule">
+<p class="pv-note">
+  <strong>Links</strong> open the signed Supabase Storage URL with
+  <code>target="_blank" rel="noopener noreferrer"</code> — the trainer's browser fetches the
+  <code>.docx</code> from storage directly, not through the API.
+</p>

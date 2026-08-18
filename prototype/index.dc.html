@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+  <script src="image-slot.js"></script>
+  <style>
+    @keyframes cbcPulse { 0%,100% { opacity:1; } 50% { opacity:.45; } }
+    @keyframes cbcModalPop { from { opacity:0; transform:scale(0.95); } to { opacity:1; transform:scale(1); } }
+    body { margin:0; }
+    a { color:#185FA5; }
+    a:hover { color:#0C447C; }
+    :where(button,a,input,select,summary,[tabindex]):focus-visible { outline:2px solid #185FA5; outline-offset:2px; border-radius:4px; }
+    image-slot { display:block; }
+    @media (prefers-reduced-motion: reduce) { *,*::before,*::after { animation-duration:0.01ms !important; transition-duration:0.01ms !important; } }
+  </style>
+</helmet>
+
+<div style="min-height:100vh;background:#F5F4F0;font-family:'IBM Plex Sans',system-ui,sans-serif;color:#18180F;font-size:13px;line-height:19px;">
+
+  <div style="position:sticky;top:0;z-index:20;">
+    <div style="display:flex;align-items:center;height:26px;background:#EEECEA;border-bottom:1px solid #D8D6D0;">
+      <div style="display:flex;align-items:center;gap:8px;max-width:840px;width:100%;margin:0 auto;padding:0 24px;font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:0.03em;color:#5A5950;">
+        <span>REPUBLIC OF THE PHILIPPINES &middot; TECHNICAL EDUCATION AND SKILLS DEVELOPMENT AUTHORITY</span>
+        <span style="margin-left:auto;">PROVINCIAL TRAINING CENTER &mdash; SURALLAH</span>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;height:56px;background:#FFFFFF;border-bottom:1px solid #D8D6D0;">
+    <div style="display:flex;align-items:center;gap:16px;max-width:840px;width:100%;margin:0 auto;padding:0 24px;height:100%;">
+      <image-slot id="ptc-surallah-seal" shape="circle" placeholder="PTC-Surallah / TESDA seal" style="width:32px;height:32px;flex:none;"></image-slot>
+      <div style="line-height:1.15;">
+        <div style="font-size:15px;font-weight:600;color:#18180F;">CBLM Developer</div>
+        <div style="font-size:10px;color:#97968E;font-family:'IBM Plex Mono',monospace;letter-spacing:0.02em;">PTC-SURALLAH &middot; TESDA</div>
+      </div>
+      <nav style="display:flex;gap:4px;height:36px;margin-left:24px;border-bottom:1px solid #D8D6D0;align-self:stretch;align-items:stretch;">
+        <button onClick="{{ goProjects }}" style-hover="color:{{ navProjectsHoverColor }}" style="display:inline-flex;align-items:center;gap:6px;padding:0 12px;border:0;border-bottom:2px solid {{ navProjectsBorder }};background:none;color:{{ navProjectsColor }};font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:{{ navProjectsWeight }};cursor:pointer;transition:color 150ms ease,border-color 150ms ease;">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2"></path></svg>
+          Projects
+        </button>
+        <button onClick="{{ goUploadNav }}" style-hover="color:{{ navUploadHoverColor }}" style="display:inline-flex;align-items:center;gap:6px;padding:0 12px;border:0;border-bottom:2px solid {{ navUploadBorder }};background:none;color:{{ navUploadColor }};font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:{{ navUploadWeight }};cursor:pointer;transition:color 150ms ease,border-color 150ms ease;">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"></path><path d="M7 9l5 -5l5 5"></path><path d="M12 4v12"></path></svg>
+          Upload &amp; Generate
+        </button>
+        <button onClick="{{ goProgressNav }}" style-hover="color:{{ navProgressHoverColor }}" style="display:inline-flex;align-items:center;gap:6px;padding:0 12px;border:0;border-bottom:2px solid {{ navProgressBorder }};background:none;color:{{ navProgressColor }};font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:{{ navProgressWeight }};cursor:pointer;transition:color 150ms ease,border-color 150ms ease;">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M7 4v16l13 -8z"></path></svg>
+          Run Progress
+        </button>
+        <button onClick="{{ goResults }}" style-hover="color:{{ navResultsHoverColor }}" style="display:inline-flex;align-items:center;gap:6px;padding:0 12px;border:0;border-bottom:2px solid {{ navResultsBorder }};background:none;color:{{ navResultsColor }};font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:{{ navResultsWeight }};cursor:pointer;transition:color 150ms ease,border-color 150ms ease;">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"></path><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"></path></svg>
+          Results
+        </button>
+      </nav>
+      <span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#5A5950;">Trainer II &middot; TM I/II</span>
+    </div>
+    </div>
+  </div>
+
+  <div style="max-width:840px;margin:0 auto;padding:32px 24px 80px;">
+
+    <!-- ============ PROJECTS ============ -->
+    <sc-if value="{{ isProjects }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;align-items:center;margin-bottom:16px;">
+        <h2 style="font-size:20px;line-height:26px;font-weight:600;margin:0;">Projects</h2>
+        <span style="margin-left:auto;">
+          <button onClick="{{ openNewProject }}" style-hover="background:#0C447C" style-active="transform:scale(0.97)" style="display:inline-flex;align-items:center;gap:4px;height:32px;padding:0 12px;border-radius:8px;border:1px solid #185FA5;background:#185FA5;color:#F5F4F0;font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:background 150ms ease,transform 160ms cubic-bezier(0.23,1,0.32,1);">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>
+            New project
+          </button>
+        </span>
+      </div>
+      <div style="border:1px solid #D8D6D0;border-radius:8px;overflow:hidden;background:#FFFFFF;">
+        <sc-for list="{{ projects }}" as="p" hint-placeholder-count="4">
+          <div onClick="{{ p.onOpen }}" style-hover="background:#FAF9F6" style="display:flex;align-items:center;gap:12px;height:40px;padding:0 12px;border-bottom:1px solid #E8E6E2;font-size:13px;background:{{ p.rowBg }};cursor:pointer;transition:background 120ms ease;">
+            <span style="font-weight:500;">{{ p.title }}</span>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#5A5950;">{{ p.code }}</span>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#5A5950;margin-left:auto;">{{ p.date }}</span>
+            <span style="display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:6px;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;background:{{ p.badgeBg }};color:{{ p.badgeColor }};">{{ p.badgeText }}</span>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <!-- ============ SOURCES & GENERATE ============ -->
+    <sc-if value="{{ isUpload }}" hint-placeholder-val="{{ false }}">
+
+      <!-- ---- Source library: TR + CBC supply facts, references supply style ---- -->
+      <div style="max-width:640px;background:#FFFFFF;border:1px solid #D8D6D0;border-radius:8px;padding:20px;box-shadow:0 1px 2px rgba(15,14,11,0.06);margin-bottom:16px;">
+        <div style="display:flex;align-items:baseline;margin-bottom:4px;">
+          <h2 style="font-size:20px;font-weight:600;margin:0;">{{ activeProject.title }}</h2>
+          <span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#5A5950;">{{ activeProject.code }}</span>
+        </div>
+        <p style="font-size:12px;color:#5A5950;margin:0 0 16px;">1 &middot; Sources. The TR defines what competence means; the CBC defines what is taught and assessed. Both are required.</p>
+
+        <div style="border:1px solid #D8D6D0;border-radius:8px;overflow:hidden;">
+          <sc-for list="{{ sources }}" as="src" hint-placeholder-count="3">
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid #E8E6E2;">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="{{ src.iconColor }}" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style="flex:none;"><path d="M14 3v4a1 1 0 0 0 1 1h4"></path><path d="M17 21H7a2 2 0 0 1 -2 -2V5a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"></path></svg>
+              <span style="flex:1;min-width:0;">
+                <span style="display:block;font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ src.name }}</span>
+                <span style="display:block;font-size:11px;color:{{ src.metaColor }};">{{ src.meta }}</span>
+              </span>
+              <span style="flex:none;display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:6px;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;background:{{ src.roleBg }};color:{{ src.roleColor }};border:1px solid {{ src.roleBorder }};">{{ src.role }}</span>
+              <button onClick="{{ src.onRemove }}" aria-label="Remove source" style-hover="color:#C81F1F" style="flex:none;border:0;background:none;padding:4px;cursor:pointer;color:#97968E;transition:color 120ms ease;">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18"></path><path d="M6 6l12 12"></path></svg>
+              </button>
+            </div>
+          </sc-for>
+          <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:#EEECEA;">
+            <button onClick="{{ addSource }}" style-hover="background:#FAF9F6" style-active="transform:scale(0.97)" style="height:26px;padding:0 10px;border-radius:8px;border:1px solid #D8D6D0;background:#FFFFFF;font-size:12px;font-weight:500;cursor:pointer;transition:background 120ms ease,transform 160ms cubic-bezier(0.23,1,0.32,1);">+ Add source</button>
+            <span style="font-size:11px;color:#5A5950;">PDF or DOCX &middot; TR and CBC required, references optional</span>
+            <span style="margin-left:auto;"><a onClick="{{ simulateScanned }}" style="font-size:11px;cursor:pointer;">Simulate a scanned PDF</a></span>
+          </div>
+        </div>
+
+        <sc-if value="{{ sourcesBlocked }}" hint-placeholder-val="{{ false }}">
+          <div role="status" style="display:flex;gap:8px;align-items:flex-start;padding:12px 16px;border-radius:8px;border:1px solid #F2B673;background:#FCE6CC;font-size:13px;color:#7A3806;margin-top:12px;animation:cbcModalPop 180ms cubic-bezier(0.23,1,0.32,1) both;">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style="flex:none;margin-top:2px;"><path d="M12 9v4"></path><path d="M10.4 4.6l-8 14a1.7 1.7 0 0 0 1.5 2.5h16.2a1.7 1.7 0 0 0 1.5 -2.5l-8 -14a1.7 1.7 0 0 0 -3 0z"></path><path d="M12 17h.01"></path></svg>
+            <div>Still need {{ missingLabel }}. Session Plans and CBLMs cannot be generated from the TR alone &mdash; the curriculum contents, methodologies and assessment methods live in the CBC.</div>
+          </div>
+        </sc-if>
+      </div>
+
+      <!-- ---- Configure: qualification, unit of competency, document type, cost ---- -->
+      <sc-if value="{{ sourcesReady }}" hint-placeholder-val="{{ true }}">
+        <div style="max-width:640px;background:#FFFFFF;border:1px solid #D8D6D0;border-radius:8px;padding:20px;box-shadow:0 1px 2px rgba(15,14,11,0.06);margin-bottom:16px;">
+          <p style="font-size:12px;color:#5A5950;margin:0 0 12px;">2 &middot; What should I generate?</p>
+
+          <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;margin-bottom:16px;border:1px solid #B5D0EE;background:#E6F1FB;border-radius:8px;">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#0C447C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style="flex:none;"><circle cx="15" cy="15" r="3"></circle><path d="M13 17.5V22l2 -1.5l2 1.5v-4.5"></path><path d="M10 19H5a2 2 0 0 1 -2 -2V5a2 2 0 0 1 2 -2h11a2 2 0 0 1 2 2v6"></path></svg>
+            <span>
+              <span style="display:block;font-size:14px;font-weight:600;color:#0C447C;">{{ qualification.title }}</span>
+              <span style="display:block;font-size:11px;color:#0C447C;opacity:0.8;">Detected from TR and CBC &middot; <span style="font-family:'IBM Plex Mono',monospace;">{{ qualification.units }}</span> units of competency</span>
+            </span>
+          </div>
+
+          <p style="font-size:12px;font-weight:500;color:#5A5950;margin:0 0 6px;">Unit of competency</p>
+          <select onChange="{{ onUcChange }}" value="{{ ucIndex }}" style="height:32px;padding:0 8px;width:100%;border:1px solid #D8D6D0;border-radius:8px;background:#EEECEA;font-family:'IBM Plex Sans',sans-serif;font-size:13px;color:#18180F;margin-bottom:16px;">
+            <sc-for list="{{ ucOptions }}" as="u" hint-placeholder-count="7">
+              <option value="{{ u.index }}" disabled="{{ u.disabled }}">{{ u.label }}</option>
+            </sc-for>
+          </select>
+
+          <p style="font-size:12px;font-weight:500;color:#5A5950;margin:0 0 6px;">Document type</p>
+          <div role="radiogroup" aria-label="Document type">
+            <sc-for list="{{ docTypes }}" as="d" hint-placeholder-count="2">
+              <div onClick="{{ d.onPick }}" style-hover="border-color:#B0AEA8" style="display:flex;align-items:center;gap:12px;padding:12px 14px;margin-bottom:6px;border:1px solid {{ d.rowBorder }};border-radius:8px;background:{{ d.rowBg }};cursor:pointer;transition:border-color 150ms ease,background 150ms ease;">
+                <span style="flex:none;width:16px;height:16px;border-radius:99px;border:1.5px solid {{ d.dotBorder }};background:#FFFFFF;display:inline-flex;align-items:center;justify-content:center;">
+                  <span style="width:8px;height:8px;border-radius:99px;background:{{ d.dotBg }};"></span>
+                </span>
+                <span style="flex:1;min-width:0;">
+                  <span style="display:block;font-size:13px;font-weight:600;">{{ d.label }}</span>
+                  <span style="display:block;font-size:11px;color:#5A5950;">{{ d.desc }}</span>
+                </span>
+                <span style="flex:none;font-family:'IBM Plex Mono',monospace;font-size:11px;padding:3px 10px;border-radius:99px;background:{{ d.chipBg }};color:{{ d.chipColor }};border:1px solid {{ d.chipBorder }};">{{ d.chip }}</span>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="margin:16px 0;">
+            <div style="display:flex;font-size:11px;color:#5A5950;margin-bottom:5px;">
+              <span>Run budget</span>
+              <span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;">{{ budgetNeeded }} of {{ budgetCap }} calls</span>
+            </div>
+            <div role="progressbar" style="height:6px;border-radius:99px;background:#EEECEA;overflow:hidden;">
+              <div style="height:100%;min-width:2px;border-radius:99px;width:{{ budgetPct }}%;background:{{ budgetColor }};transition:width 200ms cubic-bezier(0.23,1,0.32,1);"></div>
+            </div>
+          </div>
+
+          <sc-if value="{{ overBudget }}" hint-placeholder-val="{{ false }}">
+            <div role="alert" style="display:flex;gap:8px;align-items:flex-start;padding:12px 16px;border-radius:8px;border:1px solid #ED9999;background:#FCE4E4;font-size:13px;color:#8B1414;margin-bottom:12px;animation:cbcModalPop 180ms cubic-bezier(0.23,1,0.32,1) both;">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style="flex:none;margin-top:2px;"><path d="M12 9v4"></path><path d="M10.4 4.6l-8 14a1.7 1.7 0 0 0 1.5 2.5h16.2a1.7 1.7 0 0 0 1.5 -2.5l-8 -14a1.7 1.7 0 0 0 -3 0z"></path><path d="M12 17h.01"></path></svg>
+              <div>This selection needs <span style="font-family:'IBM Plex Mono',monospace;">{{ budgetNeeded }}</span> calls; the cap is <span style="font-family:'IBM Plex Mono',monospace;">{{ budgetCap }}</span>. Generate Session Plans first, or pick a unit with fewer learning outcomes.</div>
+            </div>
+          </sc-if>
+
+          <button onClick="{{ generateDocuments }}" disabled="{{ overBudget }}" style-hover="background:{{ generateHoverBg }}" style-active="transform:scale(0.97)" style="height:32px;padding:0 12px;border-radius:8px;border:1px solid #185FA5;background:{{ generateBg }};color:#F5F4F0;font-family:'IBM Plex Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;opacity:{{ generateOpacity }};transition:background 150ms ease,transform 160ms cubic-bezier(0.23,1,0.32,1);">{{ generateLabel }}</button>
+        </div>
+      </sc-if>
+
+      <p style="font-size:14px;font-weight:500;margin:0 0 8px;">Earlier runs</p>
+      <div style="border:1px solid #D8D6D0;border-radius:8px;overflow:hidden;background:#FFFFFF;">
+        <div style="display:flex;align-items:center;gap:8px;height:40px;padding:0 12px;border-bottom:1px solid #E8E6E2;font-size:13px;">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#5A5950" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 8v4l3 3"></path><path d="M3.05 11a9 9 0 1 1 .5 4"></path><path d="M3 20v-5h5"></path></svg>
+          <span style="font-weight:500;">Run 2</span>
+          <span style="font-size:12px;color:#5A5950;">16 Aug 2026, 14:02</span>
+          <span style="margin-left:auto;"></span>
+          <span style="display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:6px;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;background:#FCE6CC;color:#7A3806;">PARTIAL</span>
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#5A5950;margin-left:8px;">18 / 20</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;height:40px;padding:0 12px;font-size:13px;background:#EEECEA;">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#5A5950" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 8v4l3 3"></path><path d="M3.05 11a9 9 0 1 1 .5 4"></path><path d="M3 20v-5h5"></path></svg>
+          <span style="font-weight:500;">Run 1</span>
+          <span style="font-size:12px;color:#5A5950;">15 Aug 2026, 09:41</span>
+          <span style="margin-left:auto;"></span>
+          <span style="display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:6px;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;background:#FCE4E4;color:#8B1414;">RUN FAILED</span>
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#5A5950;margin-left:8px;">0 / 20</span>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- ============ RUN PROGRESS ============ -->
+    <sc-if value="{{ isProgress }}" hint-placeholder-val="{{ false }}">
+      <div style="max-width:720px;background:#FFFFFF;border:1px solid #D8D6D0;border-radius:8px;padding:20px;box-shadow:0 1px 2px rgba(15,14,11,0.06);">
+        <div style="display:flex;align-items:baseline;margin-bottom:16px;">
+          <h2 style="font-size:20px;font-weight:600;margin:0;">{{ activeProject.title }}</h2>
+          <span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#5A5950;">job 3f9a1c2e</span>
+        </div>
+
+        <sc-if value="{{ job.isRunning }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;align-items:baseline;margin-bottom:6px;">
+            <span style="font-size:14px;font-weight:500;">{{ job.phase }}</span>
+            <span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#5A5950;">{{ job.docCount }} / 25 documents</span>
+          </div>
+          <div role="progressbar" aria-valuenow="{{ job.docCount }}" aria-valuemin="0" aria-valuemax="25" style="height:6px;border-radius:9999px;background:#EEECEA;overflow:hidden;">
+            <div style="height:100%;border-radius:9999px;background:#185FA5;transition:width 300ms cubic-bezier(0.34,1.56,0.64,1);width:{{ job.pct }}%;"></div>
+          </div>
+          <div style="height:16px;"></div>
+
+          <sc-if value="{{ job.showPacing }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;gap:8px;align-items:flex-start;padding:12px 16px;border-radius:8px;border:1px solid #B5D0EE;background:#E6F1FB;font-size:13px;color:#0C447C;margin-bottom:16px;animation:cbcModalPop 180ms cubic-bezier(0.23,1,0.32,1) both;">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style="flex:none;margin-top:2px;"><path d="M20.94 13.045a9 9 0 1 0 -7.9 7.9"></path><path d="M12 7v5l2 2"></path><path d="M17 17v5"></path><path d="M21 17v5"></path></svg>
+              <div>Pacing LLM calls to stay inside the free-tier rate limit. This is expected — a full run takes a few minutes. <span style="font-family:'IBM Plex Mono',monospace;opacity:0.75;">{{ job.pacingSeconds }}s</span></div>
+            </div>
+          </sc-if>
+
+          <div style="border:1px solid #D8D6D0;border-radius:8px;overflow:hidden;background:#FFFFFF;" role="log" aria-live="polite" aria-relevant="text">
+            <sc-for list="{{ rowsView }}" as="item" hint-placeholder-count="14">
+              <div aria-current="{{ item.isActive }}" style="display:flex;align-items:center;gap:8px;height:40px;padding:0 12px;border-bottom:1px solid #E8E6E2;font-size:13px;background:{{ item.rowBg }};">
+                <sc-if value="{{ item.isPending }}" hint-placeholder-val="{{ false }}">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#C4C2BC" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style="flex:none;"><circle cx="12" cy="12" r="9"></circle></svg>
+                </sc-if>
+                <sc-if value="{{ item.isActive }}" hint-placeholder-val="{{ false }}">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#185FA5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style="flex:none;animation:cbcPulse 2000ms cubic-bezier(0.2,0,0,1) infinite;"><path d="M7 4v16l13 -8z"></path></svg>
+                </sc-if>
+                <sc-if value="{{ item.isSucceeded }}" hint-placeholder-val="{{ false }}">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#3B6D11" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style="flex:none;"><path d="M5 12l5 5l10 -10"></path></svg>
+                </sc-if>
+                <sc-if value="{{ item.isRetried }}" hint-placeholder-val="{{ false }}">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#C7600F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style="flex:none;"><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4"></path><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"></path></svg>
+                </sc-if>
+                <sc-if value="{{ item.isFailed }}" hint-placeholder-val="{{ false }}">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#C81F1F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style="flex:none;"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v4"></path><path d="M12 16h.01"></path></svg>
+                </sc-if>
+                <span style="font-weight:500;color:{{ item.nameColor }};">{{ item.name }}</span>
+                <sc-if value="{{ item.hasLo }}" hint-placeholder-val="{{ false }}">
+                  <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;background:#EEECEA;border:1px solid #D8D6D0;border-radius:3px;padding:1px 4px;color:#5A5950;">{{ item.lo }}</span>
+                </sc-if>
+                <span style="font-size:12px;color:#5A5950;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ item.phrase }}</span>
+                <span style="margin-left:auto;"></span>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#5A5950;flex:none;">{{ item.meta }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ job.isPartialDone }}" hint-placeholder-val="{{ false }}">
+          <div role="status" style="display:flex;gap:8px;align-items:flex-start;padding:12px 16px;border-radius:8px;border:1px solid #F2B673;background:#FCE6CC;font-size:13px;color:#7A3806;margin-bottom:16px;animation:cbcModalPop 200ms cubic-bezier(0.23,1,0.32,1) both;">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style="flex:none;margin-top:2px;"><path d="M12 9v4"></path><path d="M10.4 4.6l-8 14a1.7 1.7 0 0 0 1.5 2.5h16.2a1.7 1.7 0 0 0 1.5 -2.5l-8 -14a1.7 1.7 0 0 0 -3 0z"></path><path d="M12 17h.01"></path></svg>
+            <div style="flex:1;">
+              <p style="font-size:14px;font-weight:500;margin:0 0 4px;">Completed with gaps — <span style="font-family:'IBM Plex Mono',monospace;">23</span> of <span style="font-family:'IBM Plex Mono',monospace;">25</span> documents generated.</p>
+              <div style="font-size:12px;">The sections below could not be generated. Re-running regenerates everything, including the 24 that succeeded.</div>
+              <ul style="margin:8px 0 0;padding:0;list-style:none;font-size:12px;">
+                <li style="padding:3px 0;border-top:1px solid currentColor;opacity:0.9;">Task Sheet · <span style="font-family:'IBM Plex Mono',monospace;">LO-3</span> — failed validation after 2 retries</li>
+                <li style="padding:3px 0;border-top:1px solid currentColor;opacity:0.9;">Answer Key · <span style="font-family:'IBM Plex Mono',monospace;">LO-4</span> — failed validation after 2 retries</li>
+              </ul>
+              <div style="margin-top:12px;display:flex;gap:8px;">
+                <button onClick="{{ goResults }}" style-hover="background:#0C447C" style-active="transform:scale(0.97)" style="height:32px;padding:0 12px;border-radius:8px;border:1px solid #185FA5;background:#185FA5;color:#F5F4F0;font-size:13px;font-weight:500;cursor:pointer;transition:background 150ms ease,transform 160ms cubic-bezier(0.23,1,0.32,1);">View documents</button>
+                <button onClick="{{ openRerunConfirm }}" style-hover="background:#FAF9F6" style-active="transform:scale(0.97)" style="display:inline-flex;align-items:center;gap:4px;height:32px;padding:0 12px;border-radius:8px;border:1px solid #D8D6D0;background:#FFFFFF;color:#18180F;font-size:13px;font-weight:500;cursor:pointer;transition:background 120ms ease,transform 160ms cubic-bezier(0.23,1,0.32,1);">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4"></path><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"></path></svg>
+                  Re-run generation
+                </button>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:baseline;margin-bottom:6px;">
+            <span style="font-size:14px;font-weight:500;">Completed with gaps</span>
+            <span style="margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#5A5950;">23 / 25 documents</span>
+          </div>
+          <div style="height:6px;border-radius:9999px;background:#EEECEA;overflow:hidden;margin-bottom:16px;">
+            <div style="height:100%;border-radius:9999px;background:#C7600F;width:92.3%;"></div>
+          </div>
+          <div style="border:1px solid #D8D6D0;border-radius:8px;overflow:hidden;background:#FFFFFF;">
+            <sc-for list="{{ rowsView }}" as="item" hint-placeholder-count="14">
+              <div style="display:flex;align-items:center;gap:8px;height:40px;padding:0 12px;border-bottom:1px solid #E8E6E2;font-size:13px;background:{{ item.rowBg }};">
+                <sc-if value="{{ item.isSucceeded }}" hint-placeholder-val="{{ false }}">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#3B6D11" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style="flex:none;"><path d="M5 12l5 5l10 -10"></path></svg>
+                </sc-if>
+                <sc-if value="{{ item.isFailed }}" hint-placeholder-val="{{ false }}">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#C81F1F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style="flex:none;"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v4"></path><path d="M12 16h.01"></path></svg>
+                </sc-if>
+                <span style="font-weight:500;color:{{ item.nameColor }};">{{ item.name }}</span>
+                <sc-if value="{{ item.hasLo }}" hint-placeholder-val="{{ false }}">
+                  <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;background:#EEECEA;border:1px solid #D8D6D0;border-radius:3px;padding:1px 4px;color:#5A5950;">{{ item.lo }}</span>
+                </sc-if>
+                <span style="font-size:12px;color:#5A5950;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ item.phrase }}</span>
+                <span style="margin-left:auto;"></span>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#5A5950;flex:none;">{{ item.meta }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ job.isCleanDone }}" hint-placeholder-val="{{ false }}">
+          <div role="status" style="display:flex;gap:8px;align-items:flex-start;padding:12px 16px;border-radius:8px;border:1px solid #B5D98A;background:#EAF3DE;font-size:13px;color:#27500A;margin-bottom:16px;animation:cbcModalPop 200ms cubic-bezier(0.23,1,0.32,1) both;">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style="flex:none;margin-top:2px;"><path d="M5 12l5 5l10 -10"></path></svg>
+            <div><p style="font-size:14px;font-weight:500;margin:0;">All 25 documents generated.</p></div>
+          </div>
+          <div style="border:1px solid #D8D6D0;border-radius:8px;overflow:hidden;background:#FFFFFF;">
+            <sc-for list="{{ rowsView }}" as="item" hint-placeholder-count="14">
+              <div style="display:flex;align-items:center;gap:8px;height:40px;padding:0 12px;border-bottom:1px solid #E8E6E2;font-size:13px;background:{{ item.rowBg }};">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#3B6D11" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style="flex:none;"><path d="M5 12l5 5l10 -10"></path></svg>
+                <span style="font-weight:500;color:#18180F;">{{ item.name }}</span>
+                <sc-if value="{{ item.hasLo }}" hint-placeholder-val="{{ false }}">
+                  <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;background:#EEECEA;border:1px solid #D8D6D0;border-radius:3px;padding:1px 4px;color:#5A5950;">{{ item.lo }}</span>
+                </sc-if>
+                <span style="font-size:12px;color:#5A5950;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ item.phrase }}</span>
+                <span style="margin-left:auto;"></span>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#5A5950;flex:none;">{{ item.meta }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ job.isFailedDone }}" hint-placeholder-val="{{ false }}">
+          <div role="status" style="display:flex;gap:8px;align-items:flex-start;padding:12px 16px;border-radius:8px;border:1px solid #ED9999;background:#FCE4E4;font-size:13px;color:#8B1414;margin-bottom:16px;animation:cbcModalPop 200ms cubic-bezier(0.23,1,0.32,1) both;">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style="flex:none;margin-top:2px;"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v4"></path><path d="M12 16h.01"></path></svg>
+            <div style="flex:1;">
+              <p style="font-size:14px;font-weight:500;margin:0 0 4px;">Run failed. No documents were generated.</p>
+              <div style="font-size:12px;">The Parser stopped unexpectedly.</div>
+              <div style="margin-top:8px;">
+                <button onClick="{{ toggleErrorDetail }}" style="background:none;border:0;padding:4px 0;font-size:12px;color:#0C447C;cursor:pointer;">{{ errorToggleLabel }}</button>
+                <sc-if value="{{ errorExpanded }}" hint-placeholder-val="{{ false }}">
+                  <div style="background:#EEECEA;border:1px solid #D8D6D0;border-radius:6px;padding:12px;margin-top:4px;">
+                    <pre style="font-family:'IBM Plex Mono',monospace;font-size:11px;line-height:1.5;color:#18180F;white-space:pre-wrap;overflow-x:auto;max-height:240px;overflow-y:auto;margin:0;" aria-label="Raw error traceback">{{ errorText }}</pre>
+                    <button onClick="{{ copyError }}" style="margin-top:8px;height:26px;padding:0 8px;border-radius:8px;border:1px solid #D8D6D0;background:#FFFFFF;font-size:12px;font-weight:500;cursor:pointer;">{{ copyLabel }}</button>
+                  </div>
+                </sc-if>
+              </div>
+              <div style="margin-top:12px;">
+                <button onClick="{{ openRerunConfirm }}" style-hover="background:#FAF9F6" style-active="transform:scale(0.97)" style="display:inline-flex;align-items:center;gap:4px;height:32px;padding:0 12px;border-radius:8px;border:1px solid #D8D6D0;background:#FFFFFF;color:#18180F;font-size:13px;font-weight:500;cursor:pointer;transition:background 120ms ease,transform 160ms cubic-bezier(0.23,1,0.32,1);">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4"></path><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"></path></svg>
+                  Re-run generation
+                </button>
+              </div>
+            </div>
+          </div>
+          <div style="border:1px solid #D8D6D0;border-radius:8px;overflow:hidden;background:#FFFFFF;">
+            <div style="display:flex;align-items:center;gap:8px;height:40px;padding:0 12px;font-size:13px;">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#C81F1F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style="flex:none;"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v4"></path><path d="M12 16h.01"></path></svg>
+              <span style="font-weight:500;">Parser</span>
+              <span style="font-size:12px;color:#5A5950;">run stopped here</span>
+              <span style="margin-left:auto;"></span>
+              <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#5A5950;">failed</span>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <!-- ============ RESULTS ============ -->
+    <sc-if value="{{ isResults }}" hint-placeholder-val="{{ false }}">
+      <div style="max-width:720px;">
+        <h2 style="font-size:20px;font-weight:600;margin:0 0 16px;">Documents</h2>
+
+        <sc-if value="{{ resultsIsEmpty }}" hint-placeholder-val="{{ false }}">
+          <div style="border:1px solid #D8D6D0;border-radius:8px;background:#FFFFFF;text-align:center;padding:48px 16px;">
+            <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="#97968E" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style="margin-bottom:12px;"><path d="M14 3v4a1 1 0 0 0 1 1h4"></path><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"></path></svg>
+            <p style="font-size:14px;font-weight:500;color:#5A5950;margin:0 0 4px;">No documents yet</p>
+            <p style="font-size:12px;color:#5A5950;max-width:320px;margin:0 auto;">Upload a TR PDF and run generation.</p>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ resultsIsClean }}" hint-placeholder-val="{{ false }}">
+          <div role="status" style="display:flex;gap:8px;align-items:flex-start;padding:12px 16px;border-radius:8px;border:1px solid #B5D98A;background:#EAF3DE;font-size:13px;color:#27500A;margin-bottom:16px;">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style="flex:none;margin-top:2px;"><path d="M5 12l5 5l10 -10"></path></svg>
+            <div><p style="font-size:14px;font-weight:500;margin:0;">All 25 documents generated.</p></div>
+          </div>
+            <sc-for list="{{ loGroups }}" as="g" hint-placeholder-count="5">
+              <div onClick="{{ g.onToggle }}" style-hover="background:#EEECEA" style="display:flex;align-items:center;gap:8px;height:40px;padding:0 12px;background:#EEECEA;border-bottom:1px solid #D8D6D0;cursor:pointer;transition:background 120ms ease;">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#5A5950" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style="transform:{{ g.chevTransform }};transition:transform 180ms cubic-bezier(0.23,1,0.32,1);"><path d="M6 9l6 6l6 -6"></path></svg>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;background:#FFFFFF;border:1px solid #D8D6D0;border-radius:3px;padding:1px 5px;">{{ g.lo }}</span>
+                <span style="font-size:14px;font-weight:500;">{{ g.title }}</span>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#5A5950;margin-left:auto;">{{ g.count }}</span>
+                <span style="margin-left:8px;"><span style="display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:6px;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;background:{{ g.badgeBg }};color:{{ g.badgeColor }};">{{ g.badgeText }}</span></span>
+              </div>
+              <sc-if value="{{ g.expanded }}" hint-placeholder-val="{{ false }}">
+                <sc-for list="{{ g.docs }}" as="d" hint-placeholder-count="5">
+                  <div onClick="{{ onViewDocument }}" style-hover="background:#FAF9F6" style="display:flex;align-items:center;gap:8px;height:32px;padding:0 12px;border-bottom:1px solid #E8E6E2;font-size:12px;cursor:pointer;transition:background 120ms ease;">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#185FA5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style="flex:none;"><path d="M14 3v4a1 1 0 0 0 1 1h4"></path><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"></path></svg>
+                    <span style="text-decoration:underline;text-decoration-color:#D8D6D0;">{{ d.label }}</span>
+                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#97968E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style="flex:none;"><path d="M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6"></path><path d="M11 13l9 -9"></path><path d="M15 4h5v5"></path></svg>
+                    <span style="margin-left:auto;"><span style="display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:6px;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;background:#EAF3DE;color:#27500A;">OK</span></span>
+                  </div>
+                </sc-for>
+              </sc-if>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ resultsIsPartial }}" hint-placeholder-val="{{ true }}">
+          <div role="status" style="display:flex;gap:8px;align-items:flex-start;padding:12px 16px;border-radius:8px;border:1px solid #F2B673;background:#FCE6CC;font-size:13px;color:#7A3806;margin-bottom:16px;">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style="flex:none;margin-top:2px;"><path d="M12 9v4"></path><path d="M10.4 4.6l-8 14a1.7 1.7 0 0 0 1.5 2.5h16.2a1.7 1.7 0 0 0 1.5 -2.5l-8 -14a1.7 1.7 0 0 0 -3 0z"></path><path d="M12 17h.01"></path></svg>
+            <div style="flex:1;">
+              <p style="font-size:14px;font-weight:500;margin:0 0 4px;">Completed with gaps — <span style="font-family:'IBM Plex Mono',monospace;">23</span> of <span style="font-family:'IBM Plex Mono',monospace;">25</span> documents generated.</p>
+              <ul style="margin:8px 0 0;padding:0;list-style:none;font-size:12px;">
+                <li style="padding:3px 0;border-top:1px solid currentColor;opacity:0.9;">Task Sheet · <span style="font-family:'IBM Plex Mono',monospace;">LO-3</span> — failed validation after 2 retries</li>
+                <li style="padding:3px 0;border-top:1px solid currentColor;opacity:0.9;">Answer Key · <span style="font-family:'IBM Plex Mono',monospace;">LO-4</span> — failed validation after 2 retries</li>
+              </ul>
+              <div style="margin-top:12px;">
+                <button onClick="{{ openRerunConfirm }}" style-hover="background:#FAF9F6" style-active="transform:scale(0.97)" style="display:inline-flex;align-items:center;gap:4px;height:32px;padding:0 12px;border-radius:8px;border:1px solid #D8D6D0;background:#FFFFFF;color:#18180F;font-size:13px;font-weight:500;cursor:pointer;transition:background 120ms ease,transform 160ms cubic-bezier(0.23,1,0.32,1);">
+                  <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4"></path><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"></path></svg>
+                  Re-run generation
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div style="border:1px solid #D8D6D0;border-radius:8px;overflow:hidden;background:#FFFFFF;">
+
+            <sc-for list="{{ loGroups }}" as="g" hint-placeholder-count="5">
+              <div onClick="{{ g.onToggle }}" style-hover="background:#EEECEA" style="display:flex;align-items:center;gap:8px;height:40px;padding:0 12px;background:#EEECEA;border-bottom:1px solid #D8D6D0;cursor:pointer;transition:background 120ms ease;">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#5A5950" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style="transform:{{ g.chevTransform }};transition:transform 180ms cubic-bezier(0.23,1,0.32,1);"><path d="M6 9l6 6l6 -6"></path></svg>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;background:#FFFFFF;border:1px solid #D8D6D0;border-radius:3px;padding:1px 5px;">{{ g.lo }}</span>
+                <span style="font-size:14px;font-weight:500;">{{ g.title }}</span>
+                <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#5A5950;margin-left:auto;">{{ g.count }}</span>
+                <span style="margin-left:8px;"><span style="display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:6px;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;background:{{ g.badgeBg }};color:{{ g.badgeColor }};">{{ g.badgeText }}</span></span>
+              </div>
+              <sc-if value="{{ g.expanded }}" hint-placeholder-val="{{ false }}">
+                <sc-for list="{{ g.docs }}" as="d" hint-placeholder-count="5">
+                  <div onClick="{{ d.onView }}" style-hover="background:#FAF9F6" style="display:flex;align-items:center;gap:8px;height:32px;padding:0 12px;border-bottom:1px solid #E8E6E2;font-size:12px;cursor:{{ d.rowCursor }};transition:background 120ms ease;">
+                    <sc-if value="{{ d.isOk }}" hint-placeholder-val="{{ true }}">
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#185FA5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style="flex:none;"><path d="M14 3v4a1 1 0 0 0 1 1h4"></path><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"></path></svg>
+                      <span style="text-decoration:underline;text-decoration-color:#D8D6D0;">{{ d.label }}</span>
+                      <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#97968E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style="flex:none;"><path d="M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6"></path><path d="M11 13l9 -9"></path><path d="M15 4h5v5"></path></svg>
+                    </sc-if>
+                    <sc-if value="{{ d.isMissing }}" hint-placeholder-val="{{ false }}">
+                      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#C4C2BC" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style="flex:none;"><path d="M3 3l18 18"></path><path d="M7 3h7l5 5v7m-2 4h-10a2 2 0 0 1 -2 -2v-14"></path></svg>
+                      <span style="color:#5A5950;font-style:italic;">{{ d.label }} — not generated, validation failed after 2 retries</span>
+                    </sc-if>
+                    <span style="margin-left:auto;"><span style="display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:6px;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;background:{{ d.badgeBg }};color:{{ d.badgeColor }};">{{ d.badgeText }}</span></span>
+                  </div>
+                </sc-for>
+              </sc-if>
+            </sc-for>
+
+            <div style="display:flex;align-items:center;gap:8px;height:40px;padding:0 12px;background:#F5F4F0;opacity:0.6;border-bottom:0;font-size:14px;font-weight:500;">
+              Run 1 — <span style="font-family:'IBM Plex Mono',monospace;font-weight:400;">15 Aug 2026, 09:41</span>
+              <span style="font-size:12px;font-weight:400;color:#5A5950;margin-left:8px;">superseded</span>
+              <span style="margin-left:auto;"><span style="display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:6px;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:500;background:#FCE4E4;color:#8B1414;">RUN FAILED</span></span>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
+
+  </div>
+
+  <!-- ============ NEW PROJECT MODAL ============ -->
+  <sc-if value="{{ showNewProjectModal }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;background:rgba(24,24,15,0.35);display:flex;align-items:center;justify-content:center;z-index:50;">
+      <div role="dialog" aria-modal="true" style="background:#FFFFFF;border:1px solid #D8D6D0;border-radius:12px;box-shadow:0 4px 16px rgba(15,14,11,0.10),0 2px 4px rgba(15,14,11,0.06);padding:20px;max-width:420px;width:90%;transform-origin:center;animation:cbcModalPop 180ms cubic-bezier(0.23,1,0.32,1) both;">
+        <h3 style="font-size:16px;font-weight:600;margin:0 0 8px;">New project</h3>
+        <div style="margin-bottom:12px;">
+          <label style="display:block;font-size:13px;color:#5A5950;margin-bottom:4px;">Title</label>
+          <input value="{{ newProject.title }}" onChange="{{ onNewProjectTitle }}" placeholder="Prepare Bakery Products" style="height: 34px; padding: 0 8px; width: 393px; border: 1px solid #D8D6D0; border-radius: 8px; background: #EEECEA; font-family: 'IBM Plex Sans',sans-serif; font-size: 13px; color: #18180F">
+        </div>
+        <div style="margin-bottom:12px;">
+          <label style="display:block;font-size:13px;color:#5A5950;margin-bottom:4px;">Qualification code <span style="color:#5A5950;">(optional)</span></label>
+          <input value="{{ newProject.code }}" onChange="{{ onNewProjectCode }}" placeholder="BPP NC II" style="height: 32px; padding: 0 8px; width: 393px; border: 1px solid #D8D6D0; border-radius: 8px; background: #EEECEA; font-family: 'IBM Plex Mono',monospace; font-size: 13px; color: #18180F">
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;">
+          <button onClick="{{ closeNewProject }}" style-hover="background:#FAF9F6" style-active="transform:scale(0.97)" style="height:32px;padding:0 12px;border-radius:8px;border:1px solid #D8D6D0;background:#FFFFFF;font-size:13px;font-weight:500;cursor:pointer;transition:background 120ms ease,transform 160ms cubic-bezier(0.23,1,0.32,1);">Cancel</button>
+          <button onClick="{{ createProject }}" style-hover="background:#0C447C" style-active="transform:scale(0.97)" style="height:32px;padding:0 12px;border-radius:8px;border:1px solid #185FA5;background:#185FA5;color:#F5F4F0;font-size:13px;font-weight:500;cursor:pointer;transition:background 150ms ease,transform 160ms cubic-bezier(0.23,1,0.32,1);">Create</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ============ DOCUMENT PREVIEW MODAL ============ -->
+  <sc-if value="{{ showPreview }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;background:rgba(24,24,15,0.35);display:flex;align-items:center;justify-content:center;z-index:50;">
+      <div role="dialog" aria-modal="true" style="background:#FFFFFF;border:1px solid #D8D6D0;border-radius:12px;box-shadow:0 4px 16px rgba(15,14,11,0.10),0 2px 4px rgba(15,14,11,0.06);padding:20px;max-width:560px;width:90%;transform-origin:center;animation:cbcModalPop 180ms cubic-bezier(0.23,1,0.32,1) both;">
+        <div style="display:flex;align-items:center;margin-bottom:16px;">
+          <h3 style="font-size:16px;font-weight:600;margin:0;">{{ previewDoc }}</h3>
+          <button onClick="{{ closePreview }}" aria-label="Close" style-hover="background:#FAF9F6" style="margin-left:auto;height:28px;width:28px;display:inline-flex;align-items:center;justify-content:center;border-radius:6px;border:1px solid #D8D6D0;background:#FFFFFF;cursor:pointer;transition:background 120ms ease;">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#5A5950" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6l-12 12"></path><path d="M6 6l12 12"></path></svg>
+          </button>
+        </div>
+        <div style="border:1px solid #D8D6D0;border-radius:8px;background:#EEECEA;padding:48px 16px;text-align:center;margin-bottom:16px;">
+          <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="#5A5950" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" style="margin-bottom:12px;"><path d="M14 3v4a1 1 0 0 0 1 1h4"></path><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"></path></svg>
+          <p style="font-size:13px;color:#5A5950;margin:0;">Preview not available in this prototype.<br>The real app renders the generated .docx here.</p>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end;">
+          <button onClick="{{ closePreview }}" style-hover="background:#FAF9F6" style-active="transform:scale(0.97)" style="height:32px;padding:0 12px;border-radius:8px;border:1px solid #D8D6D0;background:#FFFFFF;font-size:13px;font-weight:500;cursor:pointer;transition:background 120ms ease,transform 160ms cubic-bezier(0.23,1,0.32,1);">Close</button>
+          <button style-hover="background:#0C447C" style-active="transform:scale(0.97)" style="display:inline-flex;align-items:center;gap:4px;height:32px;padding:0 12px;border-radius:8px;border:1px solid #185FA5;background:#185FA5;color:#F5F4F0;font-size:13px;font-weight:500;cursor:pointer;transition:background 150ms ease,transform 160ms cubic-bezier(0.23,1,0.32,1);">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"></path><path d="M7 11l5 5l5 -5"></path><path d="M12 4v12"></path></svg>
+            Download
+          </button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <!-- ============ RE-RUN CONFIRM MODAL ============ -->
+  <sc-if value="{{ showRerunConfirm }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;background:rgba(24,24,15,0.35);display:flex;align-items:center;justify-content:center;z-index:50;">
+      <div role="dialog" aria-modal="true" style="background:#FFFFFF;border:1px solid #D8D6D0;border-radius:12px;box-shadow:0 4px 16px rgba(15,14,11,0.10),0 2px 4px rgba(15,14,11,0.06);padding:20px;max-width:420px;width:90%;transform-origin:center;animation:cbcModalPop 180ms cubic-bezier(0.23,1,0.32,1) both;">
+        <h3 style="font-size:16px;font-weight:600;margin:0 0 8px;">Re-run generation?</h3>
+        <p style="font-size:13px;color:#5A5950;margin:0 0 16px;">This starts a completely new run — all 25 documents are regenerated, including the 24 that succeeded. There is no way to retry just the failed sections.</p>
+        <div style="display:flex;gap:8px;justify-content:flex-end;">
+          <button onClick="{{ closeRerunConfirm }}" style-hover="background:#FAF9F6" style-active="transform:scale(0.97)" style="height:32px;padding:0 12px;border-radius:8px;border:1px solid #D8D6D0;background:#FFFFFF;font-size:13px;font-weight:500;cursor:pointer;transition:background 120ms ease,transform 160ms cubic-bezier(0.23,1,0.32,1);">Cancel</button>
+          <button onClick="{{ confirmRerun }}" style-hover="background:#0C447C" style-active="transform:scale(0.97)" style="height:32px;padding:0 12px;border-radius:8px;border:1px solid #185FA5;background:#185FA5;color:#F5F4F0;font-size:13px;font-weight:500;cursor:pointer;transition:background 150ms ease,transform 160ms cubic-bezier(0.23,1,0.32,1);">Re-run</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1200,&quot;height&quot;:900},&quot;finalOutcome&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;partial&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;partial&quot;,&quot;clean&quot;,&quot;failed&quot;],&quot;section&quot;:&quot;Simulation&quot;},&quot;playbackSpeed&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:1,&quot;tsType&quot;:&quot;number&quot;,&quot;min&quot;:0.5,&quot;max&quot;:3,&quot;step&quot;:0.5,&quot;unit&quot;:&quot;x&quot;,&quot;section&quot;:&quot;Simulation&quot;},&quot;startScreen&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;projects&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;options&quot;:[&quot;projects&quot;,&quot;upload&quot;,&quot;progress&quot;,&quot;results&quot;],&quot;section&quot;:&quot;Simulation&quot;}}">
+const ROW_DEFS = [
+  { name: 'Parser', lo: null },
+  { name: 'Retriever', lo: null },
+  { name: 'Session Plan', lo: 'LO-1' },
+  { name: 'Session Plan', lo: 'LO-2' },
+  { name: 'Session Plan', lo: 'LO-3' },
+  { name: 'Session Plan', lo: 'LO-4' },
+  { name: 'Session Plan', lo: 'LO-5' },
+  { name: 'CBLM Sections', lo: 'LO-1' },
+  { name: 'CBLM Sections', lo: 'LO-2' },
+  { name: 'CBLM Sections', lo: 'LO-3' },
+  { name: 'CBLM Sections', lo: 'LO-4' },
+  { name: 'CBLM Sections', lo: 'LO-5' },
+  { name: 'Export', lo: null },
+];
+
+const PHASE_MAP = ['Parsing the TR', 'Finding exemplars', 'Drafting Session Plans', 'Drafting Session Plans', 'Drafting Session Plans', 'Drafting Session Plans', 'Drafting Session Plans', 'Drafting CBLM sections', 'Drafting CBLM sections', 'Drafting CBLM sections', 'Drafting CBLM sections', 'Drafting CBLM sections', 'Building .docx files'];
+
+const PARTIAL_TICKS = [
+  { i: 0, status: 'active', phrase: 'running' },
+  { i: 0, status: 'succeeded', phrase: 'succeeded', meta: '4s' },
+  { i: 1, status: 'active', phrase: 'running' },
+  { i: 1, status: 'succeeded', phrase: 'succeeded', meta: '2s' },
+  { i: 2, status: 'active', phrase: 'drafting' },
+  { i: 2, status: 'succeeded', phrase: 'succeeded', meta: '11s', doc: 1 },
+  { i: 3, status: 'active', phrase: 'drafting' },
+  { i: 3, status: 'retried', phrase: 'failed validation, retrying', meta: '(1/2)', pacing: true },
+  { i: 3, status: 'succeeded', phrase: 'succeeded on retry', meta: '19s', doc: 1, pacing: false },
+  { i: 4, status: 'active', phrase: 'drafting' },
+  { i: 4, status: 'succeeded', phrase: 'succeeded', meta: '9s', doc: 1 },
+  { i: 5, status: 'active', phrase: 'drafting' },
+  { i: 5, status: 'succeeded', phrase: 'succeeded', meta: '10s', doc: 1 },
+  { i: 6, status: 'active', phrase: 'drafting' },
+  { i: 6, status: 'succeeded', phrase: 'succeeded', meta: '8s', doc: 1 },
+  { i: 7, status: 'active', phrase: 'drafting' },
+  { i: 7, status: 'succeeded', phrase: 'succeeded', meta: '34s', doc: 4 },
+  { i: 8, status: 'active', phrase: 'drafting' },
+  { i: 8, status: 'succeeded', phrase: 'succeeded', meta: '31s', doc: 4 },
+  { i: 9, status: 'active', phrase: 'drafting' },
+  { i: 9, status: 'retried', phrase: 'failed validation, retrying', meta: '(1/2)' },
+  { i: 9, status: 'retried', phrase: 'failed validation, retrying', meta: '(2/2)' },
+  { i: 9, status: 'failed', phrase: 'failed after 2 retries \u2014 continuing', meta: 'failed', doc: 3 },
+  { i: 10, status: 'active', phrase: 'drafting' },
+  { i: 10, status: 'retried', phrase: 'failed validation, retrying', meta: '(1/2)' },
+  { i: 10, status: 'succeeded', phrase: 'succeeded on retry', meta: '29s', doc: 3 },
+  { i: 11, status: 'active', phrase: 'drafting' },
+  { i: 11, status: 'succeeded', phrase: 'succeeded', meta: '33s', doc: 4 },
+  { i: 12, status: 'active', phrase: 'exporting' },
+  { i: 12, status: 'succeeded', phrase: 'succeeded', meta: '6s', doc: 0 },
+];
+
+const CLEAN_TICKS = [
+  { i: 0, status: 'active', phrase: 'running' }, { i: 0, status: 'succeeded', phrase: 'succeeded', meta: '4s' },
+  { i: 1, status: 'active', phrase: 'running' }, { i: 1, status: 'succeeded', phrase: 'succeeded', meta: '2s' },
+  { i: 2, status: 'active', phrase: 'drafting' }, { i: 3, status: 'succeeded', phrase: 'succeeded', meta: '11s', doc: 1 },
+  { i: 3, status: 'active', phrase: 'drafting' }, { i: 4, status: 'succeeded', phrase: 'succeeded', meta: '13s', doc: 1 },
+  { i: 4, status: 'active', phrase: 'drafting' }, { i: 5, status: 'succeeded', phrase: 'succeeded', meta: '9s', doc: 1 },
+  { i: 5, status: 'active', phrase: 'drafting' }, { i: 6, status: 'succeeded', phrase: 'succeeded', meta: '10s', doc: 1 },
+  { i: 6, status: 'active', phrase: 'drafting' }, { i: 7, status: 'succeeded', phrase: 'succeeded', meta: '8s', doc: 1 },
+  { i: 7, status: 'active', phrase: 'drafting' }, { i: 8, status: 'succeeded', phrase: 'succeeded', meta: '34s', doc: 4 },
+  { i: 8, status: 'active', phrase: 'drafting' }, { i: 9, status: 'succeeded', phrase: 'succeeded', meta: '31s', doc: 4 },
+  { i: 9, status: 'active', phrase: 'drafting' }, { i: 10, status: 'succeeded', phrase: 'succeeded', meta: '28s', doc: 4 },
+  { i: 10, status: 'active', phrase: 'drafting' }, { i: 11, status: 'succeeded', phrase: 'succeeded', meta: '29s', doc: 4 },
+  { i: 11, status: 'active', phrase: 'drafting' }, { i: 12, status: 'succeeded', phrase: 'succeeded', meta: '33s', doc: 4 },
+  { i: 12, status: 'active', phrase: 'exporting' }, { i: 13, status: 'succeeded', phrase: 'succeeded', meta: '6s', doc: 0 },
+];
+
+const FAILED_TICKS = [
+  { i: 0, status: 'active', phrase: 'running' },
+  { i: 0, status: 'failed', phrase: 'run stopped here', meta: 'failed' },
+];
+
+const ERROR_TEXT = 'Traceback (most recent call last):\n  File "app/graph/nodes/parser.py", line 88, in run\n    tables = pdfplumber_extract(pdf_path)\n  File "app/parsing/pdf.py", line 41, in pdfplumber_extract\n    raise ParserError("no tables found on page 1-5 sample")\napp.parsing.pdf.ParserError: no tables found on page 1-5 sample';
+
+const SOURCES = [
+  { name: 'TR \u2014 Organic Agriculture Production NC II.pdf', role: 'TR',
+    meta: '91 pages \u00b7 11 units of competency found', state: 'ready' },
+  { name: 'CBC \u2014 Organic Agriculture Production NC II.pdf', role: 'CBC',
+    meta: '64 pages \u00b7 11 modules matched', state: 'ready' },
+  { name: 'Sample CBLM \u2014 Produce Organic Fertilizer.docx', role: 'Reference',
+    meta: '42 chunks indexed \u00b7 style reference', state: 'ready' },
+];
+
+const QUALIFICATION = { title: 'Organic Agriculture Production NC II', units: 11 };
+
+// Units of competency, read from the TR + CBC. Grouped in TESDA's own order.
+const UC_OPTIONS = [
+  { group: 'Core',   label: 'Raise organic chicken',                    code: 'AGR612301', los: 5, hasCbc: true  },
+  { group: 'Core',   label: 'Produce organic vegetables',               code: 'AGR612302', los: 4, hasCbc: true  },
+  { group: 'Core',   label: 'Produce organic fertilizer',               code: 'AGR612303', los: 6, hasCbc: true  },
+  { group: 'Common', label: 'Apply safety measures in farm operations', code: 'AGR321201', los: 4, hasCbc: true  },
+  { group: 'Common', label: 'Use farm tools and equipment',             code: 'AGR321202', los: 3, hasCbc: true  },
+  { group: 'Basic',  label: 'Participate in workplace communication',   code: '500311105', los: 3, hasCbc: true  },
+  { group: 'Basic',  label: 'Work in a team environment',               code: '500311106', los: 3, hasCbc: false },
+];
+
+// CBC is an INPUT now, not an output. Two document types, neither free.
+const DOC_TYPES = [
+  { key: 'session_plan', label: 'Session Plans',
+    desc: 'One per learning outcome', perLo: 1 },
+  { key: 'cblm',         label: 'CBLM',
+    desc: 'Information Sheet, Task Sheet, Self-Check, Answer Key \u2014 per LO', perLo: 4 },
+];
+
+// Free-tier headroom per run. 20 makes all three meter states reachable and is closer to
+// what a Groq free tier actually affords: Session Plans (5 LOs) = 5 -> nominal;
+// CBLM on 5 LOs = 20 -> at cap; CBLM on the 6-LO unit = 24 -> over budget.
+const BUDGET_CAP = 20;
+
+const LO_DEFS = [
+  { lo: 'LO-1', title: 'Prepare bakery products', gap: null },
+  { lo: 'LO-2', title: 'Decorate and present bakery products', gap: null },
+  { lo: 'LO-3', title: 'Perform pre-operative checks', gap: 'Task Sheet' },
+  { lo: 'LO-4', title: 'Store bakery products', gap: 'Answer Key' },
+  { lo: 'LO-5', title: 'Package bakery products', gap: null },
+];
+const DOC_LABELS = ['Session Plan', 'Information Sheet', 'Task Sheet', 'Self-Check', 'Answer Key'];
+
+function freshRows() {
+  return ROW_DEFS.map(d => ({ name: d.name, lo: d.lo, status: 'pending', phrase: 'waiting', meta: '\u2014' }));
+}
+
+function replay(ticks) {
+  let rows = freshRows();
+  let docCount = 0;
+  ticks.forEach(t => {
+    rows = rows.map((r, idx) => idx === t.i ? { ...r, status: t.status, phrase: t.phrase, meta: t.meta || r.meta } : r);
+    docCount += t.doc || 0;
+  });
+  return { rows, docCount };
+}
+
+function ticksFor(outcome) {
+  if (outcome === 'clean') return CLEAN_TICKS;
+  if (outcome === 'failed') return FAILED_TICKS;
+  return PARTIAL_TICKS;
+}
+
+class Component extends DCLogic {
+  state = {
+    screen: 'projects',
+    projects: [
+      { title: 'Prepare Bakery Products', code: 'BPP NC II', date: '16 Aug 2026', badge: 'partial' },
+      { title: 'Organic Agriculture Production', code: 'OAP NC II', date: '14 Aug 2026', badge: 'succeeded' },
+      { title: 'Bread and Pastry Production', code: 'BPP NC I', date: '11 Aug 2026', badge: 'job-failed' },
+      { title: 'Food Processing', code: 'FPR NC II', date: '09 Aug 2026', badge: 'queued' },
+    ],
+    activeProject: { title: 'Prepare Bakery Products', code: 'BPP NC II' },
+    showNewProjectModal: false,
+    newProject: { title: '', code: '' },
+    sources: SOURCES,
+    ucIndex: 0,
+    docTypeIndex: 0,
+    job: { phase: '', docCount: 0, rows: freshRows(), running: false, outcome: null, showPacing: false, pacingSeconds: 0 },
+    showRerunConfirm: false,
+    expandedLOs: { 'LO-3': true, 'LO-4': true },
+    errorExpanded: false,
+    copyLabel: 'Copy',
+    lastOutcome: 'partial',
+    previewDoc: null,
+  };
+
+  componentDidMount() {
+    const start = this.props.startScreen || 'projects';
+    const outcome = this.props.finalOutcome || 'partial';
+    if (start === 'progress') {
+      const { rows, docCount } = replay(ticksFor(outcome));
+      this.setState({ screen: start, job: { phase: PHASE_MAP[13], docCount, rows, running: false, outcome, showPacing: false, pacingSeconds: 0 }, lastOutcome: outcome });
+    } else if (start === 'results') {
+      this.setState({ screen: start, lastOutcome: outcome });
+    } else {
+      this.setState({ screen: start });
+    }
+  }
+
+  componentWillUnmount() {
+    if (this.timer) clearInterval(this.timer);
+  }
+
+  goProjects = () => this.setState({ screen: 'projects' });
+  goResults = () => this.setState({ screen: 'results' });
+
+  openProject = (p) => {
+    this.setState({ activeProject: { title: p.title, code: p.code }, screen: 'upload', upload: { status: 'idle' } });
+  };
+  goUploadNav = () => this.setState({ screen: 'upload' });
+  onUcChange = (e) => { const v = parseInt(e.target.value, 10); this.setState({ ucIndex: v }); };
+  onDocTypeChange = (i) => this.setState({ docTypeIndex: i });
+  removeSource = (name) => this.setState(s => ({ sources: s.sources.filter(x => x.name !== name) }));
+  addSource = () => this.setState({ sources: SOURCES });
+  simulateScanned = () => this.setState(s => ({
+    sources: s.sources.concat([{ name: 'Scanned TR copy.pdf', role: 'Unusable',
+      meta: 'No text layer detected \u2014 this PDF appears to be scanned', state: 'unusable' }]),
+  }));
+  goProgressNav = () => {
+    if (!this.state.job.running && !this.state.job.outcome) { this.startSimulation(); return; }
+    this.setState({ screen: 'progress' });
+  };
+
+  openNewProject = () => this.setState({ showNewProjectModal: true, newProject: { title: '', code: '' } });
+  closeNewProject = () => this.setState({ showNewProjectModal: false });
+  onNewProjectTitle = (e) => { const v = e.target.value; this.setState(s => ({ newProject: { ...s.newProject, title: v } })); };
+  onNewProjectCode = (e) => { const v = e.target.value; this.setState(s => ({ newProject: { ...s.newProject, code: v } })); };
+  createProject = () => {
+    const { title, code } = this.state.newProject;
+    if (!title.trim()) { this.setState({ showNewProjectModal: false }); return; }
+    this.setState(s => ({
+      projects: [{ title: title.trim(), code: code.trim() || '\u2014', date: 'Today', badge: 'queued' }, ...s.projects],
+      showNewProjectModal: false,
+    }));
+  };
+
+  generateDocuments = () => this.startSimulation();
+
+  startSimulation = () => {
+    if (this.timer) clearInterval(this.timer);
+    const speed = this.props.playbackSpeed || 1;
+    const outcome = this.props.finalOutcome || 'partial';
+    this.ticks = ticksFor(outcome);
+    this.tickIndex = 0;
+    this.setState({
+      screen: 'progress',
+      errorExpanded: false, copyLabel: 'Copy',
+      job: { phase: PHASE_MAP[0], docCount: 0, rows: freshRows(), running: true, outcome: null, showPacing: false, pacingSeconds: 0 },
+    });
+    this.timer = setInterval(() => this.advanceTick(), 750 / speed);
+  };
+
+  advanceTick = () => {
+    if (this.tickIndex >= this.ticks.length) {
+      clearInterval(this.timer);
+      const outcome = this.props.finalOutcome || 'partial';
+      this.setState(s => ({ job: { ...s.job, running: false, outcome }, lastOutcome: outcome }));
+      return;
+    }
+    const t = this.ticks[this.tickIndex];
+    this.tickIndex += 1;
+    this.setState(s => {
+      const rows = s.job.rows.map((r, idx) => idx === t.i ? { ...r, status: t.status, phrase: t.phrase, meta: t.meta || r.meta } : r);
+      const docCount = s.job.docCount + (t.doc || 0);
+      let showPacing = s.job.showPacing;
+      let pacingSeconds = s.job.pacingSeconds;
+      if (t.pacing === true) { showPacing = true; pacingSeconds = 8; }
+      else if (t.pacing === false) { showPacing = false; pacingSeconds = 0; }
+      else if (showPacing) { pacingSeconds += 8; }
+      return { job: { ...s.job, rows, phase: PHASE_MAP[t.i], docCount, showPacing, pacingSeconds } };
+    });
+  };
+
+  toggleLO = (lo) => this.setState(s => ({ expandedLOs: { ...s.expandedLOs, [lo]: !s.expandedLOs[lo] } }));
+
+  openRerunConfirm = () => this.setState({ showRerunConfirm: true });
+  closeRerunConfirm = () => this.setState({ showRerunConfirm: false });
+  confirmRerun = () => { this.setState({ showRerunConfirm: false }); this.startSimulation(); };
+
+  viewDocument = (label) => this.setState({ previewDoc: label });
+  closePreview = () => this.setState({ previewDoc: null });
+
+  toggleErrorDetail = () => this.setState(s => ({ errorExpanded: !s.errorExpanded }));
+  copyError = () => {
+    if (navigator.clipboard) navigator.clipboard.writeText(ERROR_TEXT).catch(() => {});
+    this.setState({ copyLabel: 'Copied' });
+    setTimeout(() => this.setState({ copyLabel: 'Copy' }), 1500);
+  };
+
+  renderVals() {
+    const s = this.state;
+    const navColors = (active) => active
+      ? { navColor: '#185FA5', navBorder: '#185FA5', navHoverColor: '#0C447C', navWeight: 600 }
+      : { navColor: '#5A5950', navBorder: 'transparent', navHoverColor: '#18180F', navWeight: 500 };
+    const pc = navColors(s.screen === 'projects');
+    const uc = navColors(s.screen === 'upload');
+    const gc = navColors(s.screen === 'progress');
+    const rc = navColors(s.screen === 'results');
+
+    const badgeStyle = {
+      queued: { bg: '#EEECEA', color: '#5A5950', text: 'NO RUNS' },
+      succeeded: { bg: '#EAF3DE', color: '#27500A', text: 'COMPLETE' },
+      partial: { bg: '#FCE6CC', color: '#7A3806', text: 'PARTIAL' },
+      'job-failed': { bg: '#FCE4E4', color: '#8B1414', text: 'RUN FAILED' },
+    };
+
+    const projects = s.projects.map((p, idx) => {
+      const b = badgeStyle[p.badge] || badgeStyle.queued;
+      return {
+        ...p,
+        rowBg: idx % 2 === 1 ? '#EEECEA' : '#FFFFFF',
+        badgeBg: b.bg, badgeColor: b.color, badgeText: b.text,
+        onOpen: () => this.openProject(p),
+      };
+    });
+
+    const rowsView = s.job.rows.map((r, idx) => ({
+      ...r,
+      hasLo: !!r.lo,
+      isPending: r.status === 'pending',
+      isActive: r.status === 'active',
+      isSucceeded: r.status === 'succeeded',
+      isRetried: r.status === 'retried',
+      isFailed: r.status === 'failed',
+      nameColor: r.status === 'pending' ? '#97968E' : '#18180F',
+      rowBg: idx % 2 === 1 ? '#EEECEA' : '#FFFFFF',
+    }));
+
+    const loGroups = LO_DEFS.map(g => {
+      const gap = g.gap;
+      const docs = DOC_LABELS.map(label => {
+        const missing = gap === label;
+        return {
+          label, isOk: !missing, isMissing: missing,
+          badgeBg: missing ? '#FCE4E4' : '#EAF3DE',
+          badgeColor: missing ? '#8B1414' : '#27500A',
+          badgeText: missing ? 'NOT GENERATED' : 'OK',
+        };
+      });
+      docs.forEach(d => { d.onView = d.isOk ? () => this.viewDocument(g.lo + ' \u2014 ' + d.label) : undefined; d.rowCursor = d.isOk ? 'pointer' : 'default'; });
+      const expanded = !!s.expandedLOs[g.lo];
+      return {
+        lo: g.lo, title: g.title,
+        count: gap ? '4 / 5' : '5 / 5',
+        badgeBg: gap ? '#FCE6CC' : '#EAF3DE',
+        badgeColor: gap ? '#7A3806' : '#27500A',
+        badgeText: gap ? 'PARTIAL' : 'OK',
+        expanded, chevTransform: expanded ? 'rotate(180deg)' : 'rotate(0deg)',
+        docs,
+        onToggle: () => this.toggleLO(g.lo),
+      };
+    });
+
+    const hasTR  = s.sources.some(x => x.role === 'TR'  && x.state === 'ready');
+    const hasCBC = s.sources.some(x => x.role === 'CBC' && x.state === 'ready');
+    const sourcesReady = hasTR && hasCBC;
+    const missingLabel = !hasTR && !hasCBC ? 'a Training Regulation and a CBC'
+                       : !hasTR ? 'a Training Regulation' : 'a CBC';
+
+    const ucOptions = UC_OPTIONS.map((u, i) => ({
+      index: i,
+      label: u.hasCbc
+        ? u.group + ' \u00b7 ' + u.label + ' (' + u.code + ') \u2014 ' + u.los + ' LOs'
+        : u.group + ' \u00b7 ' + u.label + ' (' + u.code + ') \u2014 no CBC module',
+      disabled: !u.hasCbc,
+    }));
+    const selUc = UC_OPTIONS[s.ucIndex] || UC_OPTIONS[0];
+
+    // Cost is LO count x per-LO document count. CBC is an input now, so nothing is free.
+    const docTypes = DOC_TYPES.map((d, i) => {
+      const calls = selUc.los * d.perLo;
+      const over  = calls > BUDGET_CAP;
+      const sel   = i === s.docTypeIndex;
+      return {
+        index: i, label: d.label, desc: d.desc + ' \u2014 ' + (selUc.los * d.perLo) + ' documents',
+        calls: calls, chip: '~' + calls + ' calls',
+        chipBg:     over ? '#FCE4E4' : (calls > BUDGET_CAP * 0.75 ? '#FCE6CC' : '#FFFFFF'),
+        chipColor:  over ? '#8B1414' : (calls > BUDGET_CAP * 0.75 ? '#7A3806' : '#5A5950'),
+        chipBorder: over ? '#ED9999' : (calls > BUDGET_CAP * 0.75 ? '#F2B673' : '#D8D6D0'),
+        selected: sel,
+        rowBg:     sel ? '#E6F1FB' : '#EEECEA',
+        rowBorder: sel ? '#185FA5' : '#D8D6D0',
+        dotBorder: sel ? '#185FA5' : '#B0AEA8',
+        dotBg:     sel ? '#185FA5' : '#FFFFFF',
+        onPick: () => this.setState({ docTypeIndex: i }),
+      };
+    });
+    const chosen = docTypes[s.docTypeIndex] || docTypes[0];
+    const budgetNeeded = chosen.calls;
+    const overBudget = budgetNeeded > BUDGET_CAP;
+    const budgetPct = Math.min(100, Math.round((budgetNeeded / BUDGET_CAP) * 1000) / 10);
+    const budgetColor = overBudget ? '#C81F1F'
+                      : (budgetNeeded > BUDGET_CAP * 0.75 ? '#C7600F' : '#1AAB8B');
+    const generateLabel = 'Generate ' + budgetNeeded + ' ' + chosen.label;
+
+    const jobOutcome = s.job.outcome;
+    return {
+      isProjects: s.screen === 'projects', isUpload: s.screen === 'upload',
+      isProgress: s.screen === 'progress', isResults: s.screen === 'results',
+      navProjectsColor: pc.navColor, navProjectsBorder: pc.navBorder, navProjectsHoverColor: pc.navHoverColor, navProjectsWeight: pc.navWeight,
+      navUploadColor: uc.navColor, navUploadBorder: uc.navBorder, navUploadHoverColor: uc.navHoverColor, navUploadWeight: uc.navWeight,
+      navProgressColor: gc.navColor, navProgressBorder: gc.navBorder, navProgressHoverColor: gc.navHoverColor, navProgressWeight: gc.navWeight,
+      navResultsColor: rc.navColor, navResultsBorder: rc.navBorder, navResultsHoverColor: rc.navHoverColor, navResultsWeight: rc.navWeight,
+      goProjects: this.goProjects, goUploadNav: this.goUploadNav, goProgressNav: this.goProgressNav, goResults: this.goResults,
+      projects,
+      openNewProject: this.openNewProject, showNewProjectModal: s.showNewProjectModal,
+      newProject: s.newProject, closeNewProject: this.closeNewProject,
+      onNewProjectTitle: this.onNewProjectTitle, onNewProjectCode: this.onNewProjectCode, createProject: this.createProject,
+      activeProject: s.activeProject,
+      sources: s.sources.map(src => ({
+        ...src,
+        isRef: src.role === 'Reference',
+        isBad: src.state === 'unusable',
+        roleBg:     src.state === 'unusable' ? '#FCE4E4' : (src.role === 'Reference' ? '#EEECEA' : '#E6F1FB'),
+        roleColor:  src.state === 'unusable' ? '#8B1414' : (src.role === 'Reference' ? '#5A5950' : '#0C447C'),
+        roleBorder: src.state === 'unusable' ? '#ED9999' : (src.role === 'Reference' ? '#D8D6D0' : '#B5D0EE'),
+        metaColor:  src.state === 'unusable' ? '#8B1414' : '#5A5950',
+        iconColor:  src.state === 'unusable' ? '#C81F1F' : '#185FA5',
+        onRemove: () => this.removeSource(src.name),
+      })),
+      hasTR: hasTR, hasCBC: hasCBC, sourcesReady: sourcesReady, sourcesBlocked: !sourcesReady,
+      missingLabel: missingLabel,
+      addSource: this.addSource, simulateScanned: this.simulateScanned,
+      qualification: QUALIFICATION,
+      ucOptions, ucIndex: s.ucIndex, onUcChange: this.onUcChange,
+      docTypes: docTypes, docTypeIndex: s.docTypeIndex, onDocTypeChange: this.onDocTypeChange,
+      overBudget: overBudget, budgetNeeded: budgetNeeded, budgetCap: BUDGET_CAP,
+      budgetPct: budgetPct, budgetColor: budgetColor,
+      generateLabel: generateLabel,
+      generateBg: overBudget ? '#D8D6D0' : '#185FA5', generateHoverBg: overBudget ? '#D8D6D0' : '#0C447C',
+      generateOpacity: overBudget ? 0.5 : 1,
+      generateDocuments: this.generateDocuments,
+      job: {
+        isRunning: s.job.running,
+        isPartialDone: !s.job.running && jobOutcome === 'partial',
+        isCleanDone: !s.job.running && jobOutcome === 'clean',
+        isFailedDone: !s.job.running && jobOutcome === 'failed',
+        phase: s.job.phase, docCount: s.job.docCount, pct: Math.round((s.job.docCount / 25) * 1000) / 10,
+        showPacing: s.job.showPacing, pacingSeconds: s.job.pacingSeconds,
+      },
+      rowsView,
+      openRerunConfirm: this.openRerunConfirm, closeRerunConfirm: this.closeRerunConfirm, confirmRerun: this.confirmRerun,
+      showRerunConfirm: s.showRerunConfirm,
+      errorExpanded: s.errorExpanded, errorToggleLabel: s.errorExpanded ? 'Hide technical detail' : 'Show technical detail',
+      errorText: ERROR_TEXT, toggleErrorDetail: this.toggleErrorDetail, copyError: this.copyError, copyLabel: s.copyLabel,
+      loGroups, onViewDocument: () => this.viewDocument('Session Plan'),
+      previewDoc: s.previewDoc, showPreview: !!s.previewDoc, closePreview: this.closePreview,
+      resultsIsPartial: s.lastOutcome === 'partial', resultsIsClean: s.lastOutcome === 'clean', resultsIsEmpty: s.lastOutcome === 'failed',
+    };
+  }
+}
+
+</script>
+</body>
+</html>

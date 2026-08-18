@@ -1,0 +1,94 @@
+<!-- @dsCard group="Status & Feedback" -->
+<meta charset="utf-8">
+<title>Run Outcome Banner</title>
+<link rel="stylesheet" href="../tokens.css">
+<svg style="display:none">
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12l5 5l10 -10"/></symbol>
+  <symbol id="i-tri" viewBox="0 0 24 24"><path d="M12 9v4"/><path d="M10.4 4.6l-8 14a1.7 1.7 0 0 0 1.5 2.5h16.2a1.7 1.7 0 0 0 1.5 -2.5l-8 -14a1.7 1.7 0 0 0 -3 0z"/><path d="M12 17h.01"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4"/><path d="M12 16h.01"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4"/><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/></symbol>
+</svg>
+<style>
+  .callout svg, .btn svg { stroke-width:2; stroke:currentColor; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+  .ob__h { font-size:var(--text-md); font-weight:500; margin:0 0 4px; }
+  .ob__gaps { margin:8px 0 0; padding:0; list-style:none; font-size:var(--text-sm); }
+  .ob__gaps li { padding:3px 0; border-top:1px solid currentColor; opacity:0.9; }
+  .ob__actions { margin-top:12px; }
+</style>
+
+<h1 class="pv-title">Run Outcome Banner</h1>
+<p class="pv-sub">
+  This is the <strong>partial-failure summary</strong> the architecture doc calls for but never
+  specifies. Info Callout geometry — 1px full-perimeter tinted border,
+  <strong>no left accent</strong>.
+</p>
+
+<div class="callout callout--error" style="max-width:700px;margin-bottom:32px">
+  <svg viewBox="0 0 24 24"><use href="#i-alert"/></svg>
+  <div>
+    <strong>Derived from the documents list, never from <code>jobs.status</code> alone.</strong>
+    A job finishes as <code>done</code> even when sections are
+    <code>failed_after_retries</code>; only total failure yields <code>failed</code>.
+    <strong>There is no green state reachable without first checking the documents.</strong>
+    A green tick over 24 of 26 documents is a lie the trainer discovers in Word, three days later.
+  </div>
+</div>
+
+<h2 class="pv-section">Three variants</h2>
+
+<div style="max-width:700px;margin-bottom:20px">
+  <span class="pv-label">status = done &middot; all documents ok</span>
+  <div class="callout callout--success" role="status">
+    <svg viewBox="0 0 24 24"><use href="#i-check"/></svg>
+    <div><p class="ob__h">All 26 documents generated.</p></div>
+  </div>
+</div>
+
+<div style="max-width:700px;margin-bottom:20px">
+  <span class="pv-label">status = done &middot; some failed_after_retries &mdash; the normal case</span>
+  <div class="callout callout--warning" role="status">
+    <svg viewBox="0 0 24 24"><use href="#i-tri"/></svg>
+    <div style="flex:1">
+      <p class="ob__h">Completed with gaps &mdash; <span class="mono">24</span> of
+        <span class="mono">26</span> documents generated.</p>
+      <div style="font-size:var(--text-sm)">The sections below could not be generated.
+        Re-running regenerates everything, including the 24 that succeeded.</div>
+      <ul class="ob__gaps">
+        <li>Task Sheet &middot; <span class="mono">LO-3</span> &mdash; failed validation after 2 retries</li>
+        <li>Answer Key &middot; <span class="mono">LO-4</span> &mdash; failed validation after 2 retries</li>
+      </ul>
+      <div class="ob__actions">
+        <button class="btn"><svg viewBox="0 0 24 24"><use href="#i-refresh"/></svg>Re-run generation</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="max-width:700px;margin-bottom:20px">
+  <span class="pv-label">status = failed &middot; nothing generated</span>
+  <div class="callout callout--error" role="status">
+    <svg viewBox="0 0 24 24"><use href="#i-alert"/></svg>
+    <div style="flex:1">
+      <p class="ob__h">Run failed. No documents were generated.</p>
+      <div style="font-size:var(--text-sm)">The Parser stopped unexpectedly.</div>
+      <div class="ob__actions">
+        <button class="btn"><svg viewBox="0 0 24 24"><use href="#i-refresh"/></svg>Re-run generation</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<h2 class="pv-section">Exactly one re-run control</h2>
+<p class="pv-note">
+  Note the gap list carries <strong>no per-row retry button</strong>. There is no per-section
+  retry API — only whole-job re-generation. A per-row control would be a lie: clicking it could
+  only ever restart all 26. One control, at the bottom of the banner, with confirmation copy
+  that says so plainly.
+</p>
+
+<hr class="pv-rule">
+<p class="pv-note">
+  <strong>a11y:</strong> <code>role="status"</code>, and the banner receives focus when a run
+  reaches a terminal state — the trainer has been watching a list scroll and needs to be moved
+  to the conclusion.
+</p>

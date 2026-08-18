@@ -1,0 +1,113 @@
+# tesda-cbc-agent — Build Checklist
+
+Backend first. UI last.
+
+**Revised 2026-08-18** after the CBLM Caravan grilling session. Product model:
+**TR (`.pdf`) + Enhanced CBC (`.docx`) both required inputs**; outputs are Session Plans
+and CBLM sections. The CBC is never generated. Grounding is a traceability chain, not
+exemplar RAG. See `CBC_DOMAIN_RULES.md` for the domain rules and `PLAN.md` §1 for scope.
+
+## 0. Foundation
+
+- [ ] Create the Python environment and lock dependencies.
+- [ ] Create the FastAPI app skeleton.
+- [ ] Add config loading for environment variables.
+- [ ] Add formatting, linting, and test commands.
+- [ ] Add a `/health` endpoint.
+- [ ] Confirm `/docs` is available.
+
+## 1. Data model
+
+- [ ] Add `projects`.
+- [ ] Add `source_uploads` with `role` ∈ `tr｜cbc｜reference`.
+- [ ] Add `parsed_structures` (UCs → LOs, plus join `unmatched`).
+- [ ] Add `jobs` with `kind` ∈ `parse｜generate` and a `checkpoint` column.
+- [ ] Add `session_plans` with `approved_at`.
+- [ ] Add `job_events`.
+- [ ] Add `generated_documents` (`session_plan｜info_sheet｜task_sheet｜self_check｜answer_key`)
+      with **`content jsonb`** alongside `storage_path` — keeps the post-MVP chat /
+      "Improve with AI" layer possible (`SYSTEM_DESIGN.md` §9).
+- [ ] Add `corpus_chunks` — RAG insurance only, unused by default.
+- [ ] Wire the initial migrations.
+
+## 2. M0 smoke test
+
+- [ ] Hand-label one competency as ground truth (TR Elements → performance criteria).
+- [ ] Pick the draft LLM model for structured extraction.
+- [ ] Run the structured-output smoke test against the real TR sample, 10×.
+- [ ] Gate on **criteria attaching to the correct LO**, not just schema validity.
+- [ ] Record observed rate-limit behaviour — it drives graph topology.
+- [ ] Keep the result in the repo.
+
+## 3. Parsers
+
+- [ ] Implement upload storage for both roles.
+- [ ] TR: synchronous text-layer check; reject scanned PDFs in place.
+- [ ] CBC: format guard — reject anything that is not `.docx`.
+- [ ] Parse TR tables with `pdfplumber.extract_tables()`; repair whitespace.
+- [ ] Structure TR rows into Pydantic models (LLM), parsed **in full**.
+- [ ] Parse CBC with `python-docx` — deterministic, no LLM.
+- [ ] Implement `align_sources`: TR *Element* ↔ CBC *Learning Outcome*.
+- [ ] Surface unmatched pairs for human confirmation; never guess.
+- [ ] Persist `parsed_structures` as a cache.
+- [ ] Add `GET /projects/{id}/structure` for the dropdown.
+
+## 4. Grounding (replaces the Retriever milestone)
+
+- [ ] Assert every CBC assessment criterion traces to a TR performance criterion
+      or critical aspect.
+- [ ] Assert every Critical Aspect of Competency is assigned to ≥1 LO.
+- [ ] Define `RetrieverProtocol`; implement `FewShotRetriever` (MVP default).
+- [ ] Leave `PineconeRetriever` as an env-var-activated stub — insurance only.
+
+## 5. LangGraph pipeline
+
+- [ ] Define pipeline state (`PipelineState`, `LOState`, `TopicRow`).
+- [ ] Add `HOUSE_RULES` prompt constant (all drafters).
+- [ ] Add `STYLE_SPEC` prompt constant (**CBLM drafter only**).
+- [ ] Add the session plan drafter node — 7-column matrix, ≥2 methods per topic.
+- [ ] Add the interrupt (`interrupt_before` + checkpointer) and `jobs.checkpoint` persistence.
+- [ ] Add `POST /jobs/{id}/resume`; guard idempotency on `approved_at`.
+- [ ] Add the CBLM drafter node — loops the **approved** plan's topics only.
+- [ ] Add `apply_house_rules` deterministic post-processing, incl. AI-use disclosure.
+- [ ] Add the validator node (numbering integrity, traceability, Style Spec §8 for CBLM).
+- [ ] Add bounded retry logic for validation failures.
+- [ ] Add per-node job event writes.
+- [ ] Confirm partial success continues the job.
+- [ ] Pace LLM calls against the free-tier limit — a topology decision, not a tuning knob.
+
+## 6. Export
+
+- [ ] **Templatize** the two TESDA `.docx` files: strip content, add Jinja tags, preserve
+      styles/headers/footers/tables. *(Startable now — no pipeline code required.)*
+- [ ] Render `.docx` with `docxtpl`.
+- [ ] Diff rendered output against the original filled documents for style fidelity.
+- [ ] Store generated files; add download endpoints.
+- [ ] Verify one competency exports cleanly.
+
+## 7. Minimal UI
+
+- [ ] Add project creation/opening.
+- [ ] Add source upload for both roles.
+- [ ] Add the UC / Learning Outcome dropdown from `GET /structure`.
+- [ ] Add job progress polling, including the `awaiting_review` state.
+- [ ] Add Session Plan review/edit + resume.
+- [ ] Add download links.
+- [ ] Keep the UI minimal and secondary to the backend.
+
+## 8. Done criteria
+
+- [ ] One competency runs end-to-end, including the review pause and resume.
+- [ ] CBLM output matches the **edited** Session Plan, not the original draft.
+- [ ] The job trace is visible in `job_events`.
+- [ ] Partial failures are represented honestly.
+- [ ] The export matches the TESDA template.
+- [ ] Generated documents carry the AI-assistance disclosure.
+- [ ] The UI can start a job, review a plan, resume, and download output.
+
+## First three moves
+
+1. Build the FastAPI skeleton.
+2. Create the database schema and migrations.
+3. Run M0 before writing the graph — and templatize the `.docx` files in parallel,
+   since that work needs no pipeline code.

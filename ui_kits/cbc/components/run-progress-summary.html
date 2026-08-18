@@ -1,0 +1,92 @@
+<!-- @dsCard group="Pipeline" -->
+<meta charset="utf-8">
+<title>Run Progress Summary</title>
+<link rel="stylesheet" href="../tokens.css">
+<style>
+  .rps { max-width:560px; }
+  .rps__top { display:flex; align-items:baseline; margin-bottom:6px; }
+  .rps__phase { font-size:var(--text-md); font-weight:500; }
+  .rps__count { margin-left:auto; font-family:var(--font-mono);
+                font-size:var(--text-xs); color:var(--color-text-secondary); }
+  .demo { margin-bottom:24px; }
+</style>
+
+<h1 class="pv-title">Run Progress Summary</h1>
+<p class="pv-sub">
+  The honest top-level &ldquo;how far along&rdquo; — one that does not lie about monotonicity.
+  Phase label &middot; 6px track &middot; right-aligned mono document count.
+</p>
+
+<div class="callout callout--info" style="max-width:660px;margin-bottom:32px">
+  <div>
+    <strong>The rule that matters.</strong> The bar tracks <strong>completed document
+    count</strong>, which never decreases — even when the phase label moves
+    <code>validating</code> &rarr; <code>drafting</code> because a section went back for a
+    retry. <strong>The label may go backwards. The bar may not.</strong>
+    A bar that retreats reads as data loss.
+  </div>
+</div>
+
+<h2 class="pv-section">States</h2>
+
+<div class="rps demo">
+  <span class="pv-label">queued</span>
+  <div class="rps__top"><span class="rps__phase">Queued</span><span class="rps__count">0 / 26 documents</span></div>
+  <div class="bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="26" aria-label="0 of 26 documents generated">
+    <div class="bar__fill bar__fill--running" style="width:0%"></div></div>
+</div>
+
+<div class="rps demo">
+  <span class="pv-label">running &mdash; drafting</span>
+  <div class="rps__top"><span class="rps__phase">Drafting documents</span><span class="rps__count">14 / 26 documents</span></div>
+  <div class="bar" role="progressbar" aria-valuenow="14" aria-valuemin="0" aria-valuemax="26" aria-label="14 of 26 documents generated">
+    <div class="bar__fill bar__fill--running" style="width:53.8%"></div></div>
+</div>
+
+<div class="rps demo">
+  <span class="pv-label">running &mdash; phase moved backwards, bar did not</span>
+  <div class="rps__top"><span class="rps__phase">Drafting documents</span><span class="rps__count">14 / 26 documents</span></div>
+  <div class="bar" role="progressbar" aria-valuenow="14" aria-valuemin="0" aria-valuemax="26" aria-label="14 of 26 documents generated">
+    <div class="bar__fill bar__fill--running" style="width:53.8%"></div></div>
+  <p class="pv-note" style="margin-top:6px">
+    The label was &ldquo;Checking output&rdquo; a moment ago and is now &ldquo;Drafting
+    documents&rdquo; again — LO-2 failed validation and went back. The bar held at 14.
+  </p>
+</div>
+
+<div class="rps demo">
+  <span class="pv-label">complete-clean</span>
+  <div class="rps__top"><span class="rps__phase">Complete</span><span class="rps__count">26 / 26 documents</span></div>
+  <div class="bar" role="progressbar" aria-valuenow="26" aria-valuemin="0" aria-valuemax="26" aria-label="All 26 documents generated">
+    <div class="bar__fill bar__fill--clean" style="width:100%"></div></div>
+</div>
+
+<div class="rps demo">
+  <span class="pv-label">complete-partial &mdash; amber, not green</span>
+  <div class="rps__top"><span class="rps__phase">Completed with gaps</span><span class="rps__count">24 / 26 documents</span></div>
+  <div class="bar" role="progressbar" aria-valuenow="24" aria-valuemin="0" aria-valuemax="26" aria-label="24 of 26 documents generated, 2 failed">
+    <div class="bar__fill bar__fill--partial" style="width:92.3%"></div></div>
+  <p class="pv-note" style="margin-top:6px">
+    The job status is <code>done</code>, but two documents are
+    <code>failed_after_retries</code>. <strong>Amber, never green.</strong>
+  </p>
+</div>
+
+<div class="rps demo">
+  <span class="pv-label">failed</span>
+  <div class="rps__top"><span class="rps__phase">Run failed</span><span class="rps__count">0 / 26 documents</span></div>
+  <div class="bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="26" aria-label="Run failed, no documents generated">
+    <div class="bar__fill bar__fill--failed" style="width:2%"></div></div>
+  <p class="pv-note" style="margin-top:6px">Minimum 2% fill — never literally invisible at zero.</p>
+</div>
+
+<hr class="pv-rule">
+<p class="pv-note">
+  <strong>Not CAMS's percentage tiers.</strong> The parent system colours progress bars
+  amber&nbsp;0&ndash;24% / blue&nbsp;25&ndash;74% / green&nbsp;75&ndash;100%, which encodes
+  &ldquo;behind schedule.&rdquo; This app has no schedule and no percentage-of-completion —
+  only a document count. One blue while running; the end state carries the colour.
+  <br><br>
+  <strong>a11y:</strong> <code>role="progressbar"</code> with
+  <code>aria-valuenow/min/max</code> and a label spelling out the count.
+</p>

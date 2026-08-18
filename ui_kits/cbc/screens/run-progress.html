@@ -1,0 +1,154 @@
+<!-- @dsCard group="Screens" -->
+<meta charset="utf-8">
+<title>Screen — Run Progress</title>
+<link rel="stylesheet" href="../tokens.css">
+<svg style="display:none">
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12l5 5l10 -10"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4v16l13 -8z"/></symbol>
+  <symbol id="i-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4"/><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4"/><path d="M12 16h.01"/></symbol>
+  <symbol id="i-tri" viewBox="0 0 24 24"><path d="M12 9v4"/><path d="M10.4 4.6l-8 14a1.7 1.7 0 0 0 1.5 2.5h16.2a1.7 1.7 0 0 0 1.5 -2.5l-8 -14a1.7 1.7 0 0 0 -3 0z"/><path d="M12 17h.01"/></symbol>
+  <symbol id="i-clockp" viewBox="0 0 24 24"><path d="M20.94 13.045a9 9 0 1 0 -7.9 7.9"/><path d="M12 7v5l2 2"/><path d="M17 17v5"/><path d="M21 17v5"/></symbol>
+</svg>
+<style>
+  svg[viewBox] { stroke-width:2; stroke:currentColor; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+  .badge svg { stroke-width:2.5; }
+  .screen { max-width:720px; background:var(--color-surface); border:1px solid var(--color-border);
+            border-radius:var(--radius-lg); padding:20px; box-shadow:var(--shadow-sm); margin-bottom:32px; }
+  .hd { display:flex; align-items:baseline; margin-bottom:16px; }
+  .hd h2 { font-size:var(--text-xl); font-weight:600; margin:0; }
+  .hd .id { margin-left:auto; font-family:var(--font-mono); font-size:var(--text-xs);
+            color:var(--color-text-secondary); }
+  .rps__top { display:flex; align-items:baseline; margin-bottom:6px; }
+  .rps__phase { font-size:var(--text-md); font-weight:500; }
+  .rps__count { margin-left:auto; font-family:var(--font-mono); font-size:var(--text-xs);
+                color:var(--color-text-secondary); }
+  .gap { height:16px; }
+</style>
+
+<h1 class="pv-title">Screen &mdash; Run Progress</h1>
+<p class="pv-sub">
+  <code>/jobs/[job_id]</code>. Polls <code>GET /jobs/{job_id}</code> every 2&nbsp;s while status
+  is non-terminal and <strong>stops on <code>done</code> or <code>failed</code></strong>.
+  Composition: progress summary &middot; pacing notice &middot; activity list &middot; and on
+  terminal, the outcome banner.
+</p>
+
+<span class="pv-label">state: running</span>
+<div class="screen">
+  <div class="hd"><h2>Prepare Bakery Products</h2><span class="id">job 3f9a1c2e</span></div>
+  <div class="rps__top"><span class="rps__phase">Drafting documents</span><span class="rps__count">14 / 26 documents</span></div>
+  <div class="bar" role="progressbar" aria-valuenow="14" aria-valuemin="0" aria-valuemax="26" aria-label="14 of 26 documents generated">
+    <div class="bar__fill bar__fill--running" style="width:53.8%"></div></div>
+  <div class="gap"></div>
+  <div class="rowlist" role="log" aria-live="polite">
+    <div class="row row--succeeded"><svg class="row__icon" viewBox="0 0 24 24"><use href="#i-check"/></svg>
+      <span class="row__name">Parser</span><span class="row__phrase">succeeded</span>
+      <span class="row__spacer"></span><span class="row__meta">4s</span></div>
+    <div class="row row--succeeded"><svg class="row__icon" viewBox="0 0 24 24"><use href="#i-check"/></svg>
+      <span class="row__name">Retriever</span><span class="row__phrase">succeeded</span>
+      <span class="row__spacer"></span><span class="row__meta">2s</span></div>
+    <div class="row row--succeeded"><svg class="row__icon" viewBox="0 0 24 24"><use href="#i-check"/></svg>
+      <span class="row__name">Session Plan</span><span class="row__lo">LO-1</span><span class="row__phrase">succeeded</span>
+      <span class="row__spacer"></span><span class="row__meta">11s</span></div>
+    <div class="row row--retried"><svg class="row__icon" viewBox="0 0 24 24"><use href="#i-refresh"/></svg>
+      <span class="row__name">Session Plan</span><span class="row__lo">LO-2</span>
+      <span class="row__phrase">failed validation, retrying</span>
+      <span class="row__spacer"></span><span class="row__meta">(1/2)</span></div>
+    <div class="row row--active" aria-current="true"><svg class="row__icon pulse" viewBox="0 0 24 24"><use href="#i-play"/></svg>
+      <span class="row__name">CBLM Sections</span><span class="row__lo">LO-1</span><span class="row__phrase">drafting</span>
+      <span class="row__spacer"></span><span class="row__meta">running</span></div>
+    <div class="row row--pending"><svg class="row__icon" viewBox="0 0 24 24"><use href="#i-circle"/></svg>
+      <span class="row__name">Export</span><span class="row__phrase">waiting</span>
+      <span class="row__spacer"></span><span class="row__meta">&mdash;</span></div>
+  </div>
+</div>
+
+<span class="pv-label">state: pacing &mdash; &gt;20s with no new event</span>
+<div class="screen">
+  <div class="hd"><h2>Prepare Bakery Products</h2><span class="id">job 3f9a1c2e</span></div>
+  <div class="rps__top"><span class="rps__phase">Drafting documents</span><span class="rps__count">14 / 26 documents</span></div>
+  <div class="bar"><div class="bar__fill bar__fill--running" style="width:53.8%"></div></div>
+  <div class="gap"></div>
+  <div class="callout callout--info">
+    <svg viewBox="0 0 24 24"><use href="#i-clockp"/></svg>
+    <div>Pacing LLM calls to stay inside the free-tier rate limit. This is expected &mdash;
+      a full run takes a few minutes. <span class="mono" style="opacity:0.75">34s</span></div>
+  </div>
+  <div class="gap"></div>
+  <div class="rowlist">
+    <div class="row row--succeeded"><svg class="row__icon" viewBox="0 0 24 24"><use href="#i-check"/></svg>
+      <span class="row__name">Session Plan</span><span class="row__lo">LO-1</span><span class="row__phrase">succeeded</span>
+      <span class="row__spacer"></span><span class="row__meta">11s</span></div>
+    <div class="row row--active"><svg class="row__icon pulse" viewBox="0 0 24 24"><use href="#i-play"/></svg>
+      <span class="row__name">CBLM Sections</span><span class="row__lo">LO-1</span><span class="row__phrase">drafting</span>
+      <span class="row__spacer"></span><span class="row__meta">running</span></div>
+  </div>
+</div>
+
+<span class="pv-label">state: done-partial &mdash; the normal completion</span>
+<div class="screen">
+  <div class="hd"><h2>Prepare Bakery Products</h2><span class="id">job 3f9a1c2e</span></div>
+  <div class="callout callout--warning" role="status" style="margin-bottom:16px">
+    <svg viewBox="0 0 24 24"><use href="#i-tri"/></svg>
+    <div style="flex:1">
+      <p style="font-size:var(--text-md);font-weight:500;margin:0 0 4px">Completed with gaps
+        &mdash; <span class="mono">24</span> of <span class="mono">26</span> documents generated.</p>
+      <div style="font-size:var(--text-sm)">The sections below could not be generated.
+        Re-running regenerates everything, including the 24 that succeeded.</div>
+      <ul style="margin:8px 0 0;padding:0;list-style:none;font-size:var(--text-sm)">
+        <li style="padding:3px 0;border-top:1px solid currentColor;opacity:0.9">Task Sheet &middot; <span class="mono">LO-3</span> &mdash; failed validation after 2 retries</li>
+        <li style="padding:3px 0;border-top:1px solid currentColor;opacity:0.9">Answer Key &middot; <span class="mono">LO-4</span> &mdash; failed validation after 2 retries</li>
+      </ul>
+      <div style="margin-top:12px;display:flex;gap:8px">
+        <button class="btn btn--primary">View documents</button>
+        <button class="btn"><svg viewBox="0 0 24 24"><use href="#i-refresh"/></svg>Re-run generation</button>
+      </div>
+    </div>
+  </div>
+  <div class="rps__top"><span class="rps__phase">Completed with gaps</span><span class="rps__count">24 / 26 documents</span></div>
+  <div class="bar"><div class="bar__fill bar__fill--partial" style="width:92.3%"></div></div>
+  <div class="gap"></div>
+  <div class="rowlist">
+    <div class="row row--succeeded"><svg class="row__icon" viewBox="0 0 24 24"><use href="#i-check"/></svg>
+      <span class="row__name">Session Plan</span><span class="row__lo">LO-2</span><span class="row__phrase">succeeded on retry</span>
+      <span class="row__spacer"></span><span class="row__meta">19s</span></div>
+    <div class="row row--failed"><svg class="row__icon" viewBox="0 0 24 24"><use href="#i-alert"/></svg>
+      <span class="row__name">CBLM Sections</span><span class="row__lo">LO-3</span>
+      <span class="row__phrase">failed after 2 retries &mdash; continuing</span>
+      <span class="row__spacer"></span><span class="row__meta">(2/2)</span></div>
+    <div class="row row--succeeded"><svg class="row__icon" viewBox="0 0 24 24"><use href="#i-check"/></svg>
+      <span class="row__name">Export</span><span class="row__phrase">succeeded</span>
+      <span class="row__spacer"></span><span class="row__meta">6s</span></div>
+  </div>
+</div>
+
+<span class="pv-label">state: failed</span>
+<div class="screen">
+  <div class="hd"><h2>Prepare Bakery Products</h2><span class="id">job 8c2d0f11</span></div>
+  <div class="callout callout--error" role="status" style="margin-bottom:16px">
+    <svg viewBox="0 0 24 24"><use href="#i-alert"/></svg>
+    <div style="flex:1">
+      <p style="font-size:var(--text-md);font-weight:500;margin:0 0 4px">Run failed. No documents were generated.</p>
+      <div style="font-size:var(--text-sm)">The Parser stopped unexpectedly.</div>
+      <div class="errblk" style="margin-top:8px">
+        <details><summary>Show technical detail</summary></details>
+      </div>
+      <div style="margin-top:12px">
+        <button class="btn"><svg viewBox="0 0 24 24"><use href="#i-refresh"/></svg>Re-run generation</button>
+      </div>
+    </div>
+  </div>
+  <div class="rowlist">
+    <div class="row row--failed"><svg class="row__icon" viewBox="0 0 24 24"><use href="#i-alert"/></svg>
+      <span class="row__name">Parser</span><span class="row__phrase">run stopped here</span>
+      <span class="row__spacer"></span><span class="row__meta">failed</span></div>
+  </div>
+</div>
+
+<p class="pv-note">
+  <strong>No stepper on any of these.</strong> Note the <code>retried</code> row sitting in
+  place between two successes rather than at the bottom — ordering is by pipeline stage then
+  LO, never by timestamp. On completion the outcome banner takes focus.
+</p>

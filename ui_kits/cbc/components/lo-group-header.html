@@ -1,0 +1,84 @@
+<!-- @dsCard group="Documents" -->
+<meta charset="utf-8">
+<title>LO Group Header</title>
+<link rel="stylesheet" href="../tokens.css">
+<svg style="display:none">
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="M6 9l6 6l6 -6"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"/></symbol>
+  <symbol id="i-ext" viewBox="0 0 24 24"><path d="M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6"/><path d="M11 13l9 -9"/><path d="M15 4h5v5"/></symbol>
+</svg>
+<style>
+  .lohead svg, .doc svg { stroke-width:2; stroke:currentColor; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+  .chev { width:16px; height:16px; color:var(--color-text-secondary); transition:transform var(--duration-base) var(--ease-standard); }
+  .chev--open { transform:rotate(180deg); }
+</style>
+
+<h1 class="pv-title">LO Group Header</h1>
+<p class="pv-sub">
+  Accordion header for the results view. A run produces 26 documents in a
+  <strong>1 + 5&times;5</strong> shape — one run-level CBC Module, then five Learning Outcomes
+  of five documents each. Flat, that is a wall; grouped, it is scannable.
+</p>
+
+<h2 class="pv-section">States</h2>
+
+<div style="max-width:640px;margin-bottom:16px">
+  <span class="pv-label">collapsed &middot; all ok</span>
+  <div class="rowlist">
+    <div class="lohead">
+      <svg class="chev" viewBox="0 0 24 24"><use href="#i-chev"/></svg>
+      <span class="lohead__chip">LO-1</span>
+      <span class="lohead__title">Prepare bakery products</span>
+      <span class="lohead__count">5 / 5</span>
+      <span style="margin-left:8px"><span class="badge badge--ok">OK</span></span>
+    </div>
+  </div>
+</div>
+
+<div style="max-width:640px;margin-bottom:16px">
+  <span class="pv-label">collapsed &middot; partial</span>
+  <div class="rowlist">
+    <div class="lohead">
+      <svg class="chev" viewBox="0 0 24 24"><use href="#i-chev"/></svg>
+      <span class="lohead__chip">LO-3</span>
+      <span class="lohead__title">Perform pre-operative checks</span>
+      <span class="lohead__count">4 / 5</span>
+      <span style="margin-left:8px"><span class="badge badge--partial">PARTIAL</span></span>
+    </div>
+  </div>
+</div>
+
+<div style="max-width:640px;margin-bottom:16px">
+  <span class="pv-label">expanded</span>
+  <div class="rowlist">
+    <div class="lohead">
+      <svg class="chev chev--open" viewBox="0 0 24 24"><use href="#i-chev"/></svg>
+      <span class="lohead__chip">LO-2</span>
+      <span class="lohead__title">Decorate and present bakery products</span>
+      <span class="lohead__count">5 / 5</span>
+      <span style="margin-left:8px"><span class="badge badge--ok">OK</span></span>
+    </div>
+    <div class="doc"><svg class="doc__icon" viewBox="0 0 24 24"><use href="#i-file"/></svg>
+      <span class="doc__label">Session Plan</span><svg class="doc__ext" viewBox="0 0 24 24"><use href="#i-ext"/></svg></div>
+    <div class="doc"><svg class="doc__icon" viewBox="0 0 24 24"><use href="#i-file"/></svg>
+      <span class="doc__label">Information Sheet</span><svg class="doc__ext" viewBox="0 0 24 24"><use href="#i-ext"/></svg></div>
+    <div class="doc"><svg class="doc__icon" viewBox="0 0 24 24"><use href="#i-file"/></svg>
+      <span class="doc__label">Task Sheet</span><svg class="doc__ext" viewBox="0 0 24 24"><use href="#i-ext"/></svg></div>
+    <div class="doc"><svg class="doc__icon" viewBox="0 0 24 24"><use href="#i-file"/></svg>
+      <span class="doc__label">Self-Check</span><svg class="doc__ext" viewBox="0 0 24 24"><use href="#i-ext"/></svg></div>
+    <div class="doc"><svg class="doc__icon" viewBox="0 0 24 24"><use href="#i-file"/></svg>
+      <span class="doc__label">Answer Key</span><svg class="doc__ext" viewBox="0 0 24 24"><use href="#i-ext"/></svg></div>
+  </div>
+</div>
+
+<hr class="pv-rule">
+<p class="pv-note">
+  <strong>Anatomy:</strong> chevron &middot; mono LO chip &middot; LO title
+  (<code>text-md</code> 500, sans — never mono) &middot; mono count pushed right &middot;
+  aggregate badge. The aggregate is <code>partial</code> if <em>any</em> child document is
+  <code>failed_after_retries</code>, so a collapsed group still tells the truth about what is
+  inside it.
+  <br><br>
+  <strong>a11y:</strong> the header is a <code>&lt;button&gt;</code> with
+  <code>aria-expanded</code> and <code>aria-controls</code> pointing at the document list.
+</p>

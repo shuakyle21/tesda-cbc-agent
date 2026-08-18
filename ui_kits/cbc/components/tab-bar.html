@@ -1,0 +1,78 @@
+<!-- @dsCard group="Documents" -->
+<meta charset="utf-8">
+<title>Tab Bar</title>
+<link rel="stylesheet" href="../tokens.css">
+<svg style="display:none">
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6l11 0"/><path d="M9 12l11 0"/><path d="M9 18l11 0"/><path d="M5 6l0 .01"/><path d="M5 12l0 .01"/><path d="M5 18l0 .01"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M3 19a9 9 0 0 1 9 0a9 9 0 0 1 9 0"/><path d="M3 6a9 9 0 0 1 9 0a9 9 0 0 1 9 0"/><path d="M3 6l0 13"/><path d="M12 6l0 13"/><path d="M21 6l0 13"/></symbol>
+  <symbol id="i-cal" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M16 3v4"/><path d="M8 3v4"/><path d="M4 11h16"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"/></symbol>
+</svg>
+<style>
+  .tab svg { stroke-width:2; stroke:currentColor; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+  .bad { border-radius:9999px !important; background:var(--color-blue) !important;
+         color:#fff !important; border-bottom-color:transparent !important; }
+</style>
+
+<h1 class="pv-title">Tab Bar</h1>
+<p class="pv-sub">
+  Carried over unchanged. <strong>Underline style only</strong> — never pill tabs. Always icon
+  <em>and</em> label, never icon-only. 36px height, max six tabs before an overflow menu.
+</p>
+
+<h2 class="pv-section">Default</h2>
+<div class="tabs" style="max-width:560px" role="tablist">
+  <button class="tab tab--active" role="tab" aria-selected="true">
+    <svg viewBox="0 0 24 24"><use href="#i-list"/></svg>All</button>
+  <button class="tab" role="tab" aria-selected="false">
+    <svg viewBox="0 0 24 24"><use href="#i-book"/></svg>CBC Module</button>
+  <button class="tab" role="tab" aria-selected="false">
+    <svg viewBox="0 0 24 24"><use href="#i-cal"/></svg>Session Plans</button>
+  <button class="tab" role="tab" aria-selected="false">
+    <svg viewBox="0 0 24 24"><use href="#i-file"/></svg>CBLM Sections</button>
+</div>
+
+<h2 class="pv-section">Second tab active</h2>
+<div class="tabs" style="max-width:560px" role="tablist">
+  <button class="tab" role="tab" aria-selected="false">
+    <svg viewBox="0 0 24 24"><use href="#i-list"/></svg>All</button>
+  <button class="tab tab--active" role="tab" aria-selected="true">
+    <svg viewBox="0 0 24 24"><use href="#i-book"/></svg>CBC Module</button>
+  <button class="tab" role="tab" aria-selected="false">
+    <svg viewBox="0 0 24 24"><use href="#i-cal"/></svg>Session Plans</button>
+  <button class="tab" role="tab" aria-selected="false">
+    <svg viewBox="0 0 24 24"><use href="#i-file"/></svg>CBLM Sections</button>
+</div>
+
+<h2 class="pv-section">Rejected forms</h2>
+<div class="pv-grid">
+  <div class="pv-cell">
+    <span class="pv-label" style="color:var(--color-red-dk)">pill tabs &mdash; never</span>
+    <div class="tabs" style="border-bottom:0">
+      <button class="tab bad">All</button>
+      <button class="tab">CBC Module</button>
+    </div>
+  </div>
+  <div class="pv-cell">
+    <span class="pv-label" style="color:var(--color-red-dk)">icon-only &mdash; never</span>
+    <div class="tabs">
+      <button class="tab tab--active"><svg viewBox="0 0 24 24"><use href="#i-list"/></svg></button>
+      <button class="tab"><svg viewBox="0 0 24 24"><use href="#i-book"/></svg></button>
+      <button class="tab"><svg viewBox="0 0 24 24"><use href="#i-cal"/></svg></button>
+    </div>
+  </div>
+</div>
+<p class="pv-note">
+  Labels stay visible because this is operational tooling used occasionally, not an app someone
+  uses daily until the icons become second nature.
+</p>
+
+<hr class="pv-rule">
+<div class="callout callout--warning" style="max-width:660px">
+  <div>
+    <strong>Optional in this app, and probably redundant.</strong> The results view already
+    groups by run, then by Learning Outcome. Filtering by document type on top of that is a
+    second organising principle competing with the first. Build it only if the LO accordion
+    proves insufficient in use.
+  </div>
+</div>

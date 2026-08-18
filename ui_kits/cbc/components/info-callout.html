@@ -1,0 +1,83 @@
+<!-- @dsCard group="Status & Feedback" -->
+<meta charset="utf-8">
+<title>Info Callout</title>
+<link rel="stylesheet" href="../tokens.css">
+<svg style="display:none">
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01"/><path d="M11 12h1v4h1"/></symbol>
+  <symbol id="i-tri" viewBox="0 0 24 24"><path d="M12 9v4"/><path d="M10.4 4.6l-8 14a1.7 1.7 0 0 0 1.5 2.5h16.2a1.7 1.7 0 0 0 1.5 -2.5l-8 -14a1.7 1.7 0 0 0 -3 0z"/><path d="M12 17h.01"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12l5 5l10 -10"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4"/><path d="M12 16h.01"/></symbol>
+</svg>
+<style>
+  .callout svg { stroke-width:2; stroke:currentColor; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+  .bad { border-left:3px solid #C7600F !important; border-radius:0 8px 8px 0 !important; }
+</style>
+
+<h1 class="pv-title">Info Callout</h1>
+<p class="pv-sub">
+  Carried over from the parent system unchanged, <strong>deviation intact</strong>:
+  a 1px tinted border around the full perimeter, light semantic background, 8px radius.
+  This is the base geometry for the Pacing Notice and the Run Outcome Banner too.
+</p>
+
+<h2 class="pv-section">All four variants</h2>
+<div style="display:flex;flex-direction:column;gap:12px;max-width:660px">
+  <div class="callout callout--info">
+    <svg viewBox="0 0 24 24"><use href="#i-info"/></svg>
+    <div><strong>Info.</strong> Pacing LLM calls to stay inside the free-tier rate limit.
+      This is expected &mdash; a full run takes a few minutes.</div>
+  </div>
+  <div class="callout callout--success">
+    <svg viewBox="0 0 24 24"><use href="#i-check"/></svg>
+    <div><strong>Success.</strong> All 26 documents generated.</div>
+  </div>
+  <div class="callout callout--warning">
+    <svg viewBox="0 0 24 24"><use href="#i-tri"/></svg>
+    <div><strong>Warning.</strong> This competency is too large for the current run budget
+      (<span class="mono">62</span> estimated LLM calls; the cap is <span class="mono">40</span>).
+      Select a single competency.</div>
+  </div>
+  <div class="callout callout--error">
+    <svg viewBox="0 0 24 24"><use href="#i-alert"/></svg>
+    <div><strong>Error.</strong> No text layer detected. This PDF appears to be scanned.
+      Upload a digitally-typed TR PDF.</div>
+  </div>
+</div>
+
+<h2 class="pv-section">The deviation, shown</h2>
+<p class="pv-note">
+  The written parent spec called for a 3px left accent border. The user rejected it on the
+  built prototype — their word was <strong>&ldquo;AI-slop&rdquo;</strong>: the generic
+  gradient-left-border-card look that signals &ldquo;AI made this&rdquo; rather than
+  &ldquo;a government compliance tool made this.&rdquo; That rejection is a standing decision,
+  and it generalises to <em>every</em> component in this system.
+</p>
+<div class="pv-grid">
+  <div class="pv-cell" style="max-width:320px">
+    <span class="pv-label" style="color:var(--color-red-dk)">rejected &mdash; do not build</span>
+    <div class="callout callout--warning bad">
+      <svg viewBox="0 0 24 24"><use href="#i-tri"/></svg>
+      <div>3px left accent, no perimeter border.</div>
+    </div>
+  </div>
+  <div class="pv-cell" style="max-width:320px">
+    <span class="pv-label" style="color:var(--color-green-dk)">correct</span>
+    <div class="callout callout--warning">
+      <svg viewBox="0 0 24 24"><use href="#i-tri"/></svg>
+      <div>1px tinted border, full perimeter, 8px radius.</div>
+    </div>
+  </div>
+</div>
+
+<div class="callout callout--error" style="max-width:660px;margin-top:24px">
+  <svg viewBox="0 0 24 24"><use href="#i-alert"/></svg>
+  <div>
+    <strong>Generalisation clause.</strong> No left-border accent on <em>any</em> component in
+    this system as a severity, urgency, or importance signal &mdash; including components the
+    parent system never had. Before adding one, ask whether a badge or tinted text carries the
+    same information. It does.
+    <br><br>
+    <strong>One exemption:</strong> a 2px left border marking a <em>selected</em> row. That
+    signals selection, not severity.
+  </div>
+</div>

@@ -1,0 +1,318 @@
+/* tesda-cbc-agent — design tokens
+   Source of truth: DESIGN.md §3. Inherited from tesda-cams-frontend-design.
+   Teal and Purple are deliberately absent — see DESIGN.md §4.
+
+   PORTING NOTE — read before moving this into the Next.js app.
+   Tokens live in `:root` here, not in Tailwind v4's `@theme`, because these previews must
+   open directly in a browser with no build step. `@theme` is a Tailwind at-rule: an
+   unprocessed browser skips the whole block, leaving every var undefined and the page
+   unstyled. In the real app, change the `:root {` line below to `@theme {` — the body is
+   already in Tailwind v4 CSS-first format (`--color-*`, `--text-*--line-height`,
+   `--spacing`, `--radius-*`, `--shadow-*`, `--ease-*`) and needs no other edits. */
+
+:root {
+  color-scheme: light;  /* the palette is light-only; do not let the UA invert it */
+
+  /* neutrals */
+  --color-bg:             #F5F4F0;  /* warm off-white, never clinical white */
+  --color-surface:        #FFFFFF;
+  --color-surface-alt:    #EEECEA;
+  --color-surface-raised: #FAF9F6;
+  --color-border:         #D8D6D0;
+  --color-border-strong:  #B0AEA8;
+  --color-border-faint:   #E8E6E2;
+
+  /* text — see DESIGN.md §11 Finding 1: muted FAILS AA, redundant text only */
+  --color-text-primary:   #18180F;
+  --color-text-secondary: #5A5950;
+  --color-text-muted:     #97968E;
+  --color-text-disabled:  #C4C2BC;
+  --color-text-inverse:   #F5F4F0;
+
+  /* semantic — one meaning each, DESIGN.md §4 */
+  --color-blue:        #185FA5;  /* info + active/in-progress */
+  --color-blue-lt:     #E6F1FB;
+  --color-blue-dk:     #0C447C;
+  --color-blue-border: #B5D0EE;
+  --color-blue-hover:  #D4E8F8;
+
+  --color-green:        #3B6D11; /* succeeded / ok / clean run */
+  --color-green-lt:     #EAF3DE;
+  --color-green-dk:     #27500A;
+  --color-green-border: #B5D98A;
+  --color-green-hover:  #D5EBB8;
+
+  --color-amber:        #C7600F; /* partial / retrying / pacing / budget */
+  --color-amber-lt:     #FCE6CC;
+  --color-amber-dk:     #7A3806;
+  --color-amber-border: #F2B673;
+  --color-amber-hover:  #F8D4A8;
+
+  --color-red:        #C81F1F;   /* failed / failed_after_retries / rejected */
+  --color-red-lt:     #FCE4E4;
+  --color-red-dk:     #8B1414;
+  --color-red-border: #ED9999;
+  --color-red-hover:  #F6C2C2;
+
+  /* type */
+  --font-sans: 'IBM Plex Sans', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
+
+  --text-2xs:  10px;  --text-2xs--line-height:  14px;
+  --text-xs:   11px;  --text-xs--line-height:   15px;
+  --text-sm:   12px;  --text-sm--line-height:   17px;
+  --text-base: 13px;  --text-base--line-height: 19px;
+  --text-md:   14px;  --text-md--line-height:   20px;
+  --text-lg:   16px;  --text-lg--line-height:   22px;
+  --text-xl:   20px;  --text-xl--line-height:   26px;
+  --text-2xl:  24px;  --text-2xl--line-height:  30px;
+
+  /* 4px grid */
+  --spacing: 4px;
+
+  /* radius — hard ceiling 12px */
+  --radius-sm:   3px;
+  --radius-md:   6px;
+  --radius-lg:   8px;
+  --radius-xl:  12px;
+  --radius-full: 9999px;
+
+  /* shadows — never tinted */
+  --shadow-sm: 0 1px 2px rgba(15,14,11,0.06);
+  --shadow-md: 0 2px 6px rgba(15,14,11,0.08), 0 1px 2px rgba(15,14,11,0.04);
+  --shadow-lg: 0 4px 16px rgba(15,14,11,0.10), 0 2px 4px rgba(15,14,11,0.06);
+
+  /* motion — functional only */
+  --duration-fast:  100ms;
+  --duration-base:  150ms;
+  --duration-slow:  300ms;
+  --duration-pulse: 2000ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-enter:    cubic-bezier(0, 0, 0.2, 1);
+  --ease-exit:     cubic-bezier(0.4, 0, 1, 1);
+  --ease-spring:   cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* ---- preview-only base. In the React app Tailwind utilities replace all of this. ---- */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 32px;
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: var(--text-base--line-height);
+  -webkit-font-smoothing: antialiased;
+}
+
+.mono { font-family: var(--font-mono); }
+
+/* preview scaffolding — not part of the design system */
+.pv-title    { font-size: var(--text-xl); line-height: var(--text-xl--line-height); font-weight: 600; margin: 0 0 4px; }
+.pv-sub      { font-size: var(--text-base); color: var(--color-text-secondary); margin: 0 0 32px; max-width: 68ch; }
+.pv-section  { font-size: var(--text-lg); line-height: var(--text-lg--line-height); font-weight: 600; margin: 32px 0 4px; }
+.pv-note     { font-size: var(--text-sm); color: var(--color-text-secondary); margin: 0 0 16px; max-width: 68ch; }
+.pv-label    { font-size: var(--text-xs); font-family: var(--font-mono); color: var(--color-text-secondary);
+               text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 8px; display: block; }
+.pv-grid     { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; }
+.pv-cell     { min-width: 200px; }
+.pv-panel    { background: var(--color-surface); border: 1px solid var(--color-border);
+               border-radius: var(--radius-lg); padding: 16px; box-shadow: var(--shadow-sm); }
+.pv-rule     { border: 0; border-top: 1px solid var(--color-border-faint); margin: 32px 0; }
+
+/* ---- components ---- */
+
+/* Status Badge — 20px, 6px radius, xs mono 500. Non-interactive.
+   NOTE (DESIGN.md §11 Finding 3): amber-lt and red-lt are near-identical fills.
+   The icon and label carry retried-vs-failed, never the background. */
+.badge {
+  display: inline-flex; align-items: center; gap: 2px;
+  height: 20px; padding: 0 8px;
+  border-radius: var(--radius-md);
+  font-family: var(--font-mono); font-size: var(--text-xs); font-weight: 500;
+  letter-spacing: 0.02em; white-space: nowrap; max-width: 22ch;
+  overflow: hidden; text-overflow: ellipsis;
+}
+.badge svg { width: 12px; height: 12px; flex: none; }
+.badge--queued  { background: var(--color-surface-alt); color: var(--color-text-secondary); }
+.badge--started,
+.badge--info    { background: var(--color-blue-lt);  color: var(--color-blue-dk); }
+.badge--succeeded,
+.badge--ok      { background: var(--color-green-lt); color: var(--color-green-dk); }
+.badge--retried,
+.badge--partial { background: var(--color-amber-lt); color: var(--color-amber-dk); }
+.badge--failed,
+.badge--failed-after-retries,
+.badge--job-failed { background: var(--color-red-lt); color: var(--color-red-dk); }
+
+/* Info Callout — DEVIATION: 1px full-perimeter tinted border, NEVER a left accent. */
+.callout {
+  display: flex; gap: 8px; align-items: flex-start;
+  padding: 12px 16px; border-radius: var(--radius-lg);
+  border: 1px solid; font-size: var(--text-base);
+}
+.callout svg { width: 16px; height: 16px; flex: none; margin-top: 2px; }
+.callout--info    { background: var(--color-blue-lt);  border-color: var(--color-blue-border);  color: var(--color-blue-dk); }
+.callout--success { background: var(--color-green-lt); border-color: var(--color-green-border); color: var(--color-green-dk); }
+.callout--warning { background: var(--color-amber-lt); border-color: var(--color-amber-border); color: var(--color-amber-dk); }
+.callout--error   { background: var(--color-red-lt);   border-color: var(--color-red-border);   color: var(--color-red-dk); }
+
+/* Row rhythm — 40px, alternating fills, no shadow. Shared by activity + result lists. */
+.rowlist { border: 1px solid var(--color-border); border-radius: var(--radius-lg);
+           overflow: hidden; background: var(--color-surface); }
+.row {
+  display: flex; align-items: center; gap: 8px;
+  height: 40px; padding: 0 12px;
+  border-bottom: 1px solid var(--color-border-faint);
+  font-size: var(--text-base);
+}
+.row:last-child { border-bottom: 0; }
+.row:nth-child(even) { background: var(--color-surface-alt); }
+.row:hover { background: var(--color-surface-raised); }
+.row__icon { width: 16px; height: 16px; flex: none; }
+.row__name { font-weight: 500; color: var(--color-text-primary); }
+.row__lo   { font-family: var(--font-mono); font-size: var(--text-xs);
+             background: var(--color-surface-alt); border: 1px solid var(--color-border);
+             border-radius: var(--radius-sm); padding: 1px 4px; color: var(--color-text-secondary); }
+.row__phrase { font-size: var(--text-sm); color: var(--color-text-secondary);
+               overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row__spacer { margin-left: auto; }
+.row__meta { font-family: var(--font-mono); font-size: var(--text-xs);
+             color: var(--color-text-secondary); flex: none; }
+
+.row--pending  .row__icon { color: var(--color-text-disabled); }
+.row--pending  .row__name { color: var(--color-text-muted); font-weight: 400; }
+.row--active   .row__icon { color: var(--color-blue); }
+.row--succeeded .row__icon { color: var(--color-green); }
+.row--retried  .row__icon { color: var(--color-amber); }
+.row--failed   .row__icon { color: var(--color-red); }
+
+/* active pulse — the only decorative-adjacent motion, and it signals "running now" */
+.pulse { animation: pulse var(--duration-pulse) var(--ease-standard) infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.45; } }
+
+/* Progress bar — 6px, count-based. Never decreases. */
+.bar { height: 6px; border-radius: var(--radius-full);
+       background: var(--color-surface-alt); overflow: hidden; }
+.bar__fill { height: 100%; border-radius: var(--radius-full);
+             transition: width var(--duration-slow) var(--ease-spring); }
+.bar__fill--running { background: var(--color-blue); }
+.bar__fill--clean   { background: var(--color-green); }
+.bar__fill--partial { background: var(--color-amber); }
+.bar__fill--failed  { background: var(--color-red); }
+
+/* Buttons — 32px */
+.btn {
+  display: inline-flex; align-items: center; gap: 4px;
+  height: 32px; padding: 0 12px;
+  border-radius: var(--radius-lg); border: 1px solid var(--color-border);
+  background: var(--color-surface); color: var(--color-text-primary);
+  font-family: var(--font-sans); font-size: var(--text-base); font-weight: 500;
+  cursor: pointer; transition: background var(--duration-fast) var(--ease-standard);
+}
+.btn svg { width: 14px; height: 14px; }
+.btn:hover:not(:disabled) { background: var(--color-surface-raised); }
+.btn--primary { background: var(--color-blue); border-color: var(--color-blue);
+                color: var(--color-text-inverse); }
+.btn--primary:hover:not(:disabled) { background: var(--color-blue-dk); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn--sm { height: 26px; padding: 0 8px; font-size: var(--text-sm); }
+
+/* focus — never outline:none */
+:where(a, button, input, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-blue); outline-offset: 2px; border-radius: var(--radius-sm);
+}
+
+/* Document Result Row — 32px. Missing state uses text-SECONDARY, never muted:
+   it is the only explanation of what went wrong (DESIGN.md §11 Finding 1). */
+.doc {
+  display: flex; align-items: center; gap: 8px;
+  height: 32px; padding: 0 12px;
+  border-bottom: 1px solid var(--color-border-faint);
+  font-size: var(--text-sm);
+}
+.doc:last-child { border-bottom: 0; }
+.doc:hover { background: var(--color-surface-raised); }
+.doc__icon { width: 16px; height: 16px; flex: none; color: var(--color-blue); }
+.doc--missing .doc__icon { color: var(--color-text-disabled); }
+.doc__label { color: var(--color-text-primary); }
+.doc--missing .doc__label { color: var(--color-text-secondary); font-style: italic; }
+.doc__ext { width: 12px; height: 12px; color: var(--color-text-muted); flex: none; }
+
+/* Empty State */
+.empty { text-align: center; padding: 48px 16px; }
+.empty svg { width: 32px; height: 32px; color: var(--color-text-muted); margin-bottom: 12px; }
+.empty__h { font-size: var(--text-md); font-weight: 500; color: var(--color-text-secondary); margin: 0 0 4px; }
+.empty__p { font-size: var(--text-sm); color: var(--color-text-secondary);  /* not muted — AA */
+            max-width: 320px; margin: 0 auto 16px; }
+
+/* Tab Bar — underline only, never pills. Icon + label, never icon-only. */
+.tabs { display: flex; gap: 4px; height: 36px; border-bottom: 1px solid var(--color-border); }
+.tab { display: inline-flex; align-items: center; gap: 4px; padding: 0 12px;
+       font-size: var(--text-sm); color: var(--color-text-secondary);
+       border-bottom: 2px solid transparent; background: none; border-top: 0;
+       border-left: 0; border-right: 0; cursor: pointer; }
+.tab svg { width: 14px; height: 14px; }
+.tab--active { color: var(--color-blue); font-weight: 500; border-bottom-color: var(--color-blue); }
+
+/* Dropzone */
+.drop { border: 1px dashed var(--color-border-strong); border-radius: var(--radius-lg);
+        background: var(--color-surface-alt); padding: 32px 16px; text-align: center; }
+.drop svg { width: 24px; height: 24px; color: var(--color-text-secondary); margin-bottom: 8px; }
+.drop__h { font-size: var(--text-base); color: var(--color-text-primary); margin: 0 0 4px; }
+.drop__p { font-size: var(--text-sm); color: var(--color-text-secondary); margin: 0; }
+.drop--dragover { background: var(--color-blue-lt); border-color: var(--color-blue); border-style: solid; }
+.drop--rejected { background: var(--color-red-lt); border-color: var(--color-red-border); border-style: solid; }
+.drop--rejected svg, .drop--rejected .drop__h, .drop--rejected .drop__p { color: var(--color-red-dk); }
+.drop--accepted { background: var(--color-green-lt); border-color: var(--color-green-border); border-style: solid; }
+.drop--accepted svg, .drop--accepted .drop__h { color: var(--color-green-dk); }
+
+/* Verbatim Error Block — NEVER regex, truncate, or prettify the exception. */
+.errblk summary { font-size: var(--text-sm); color: var(--color-blue-dk);
+                  cursor: pointer; padding: 4px 0; }
+.errblk pre {
+  background: var(--color-surface-alt); border: 1px solid var(--color-border);
+  border-radius: var(--radius-md); padding: 12px;
+  font-family: var(--font-mono); font-size: var(--text-xs); line-height: 1.5;
+  color: var(--color-text-primary);
+  white-space: pre-wrap; overflow-x: auto; max-height: 240px; overflow-y: auto; margin: 4px 0 0;
+}
+
+/* LO Group Header — accordion */
+.lohead { display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 12px;
+          background: var(--color-surface-alt); border-bottom: 1px solid var(--color-border);
+          cursor: pointer; }
+.lohead__chip { font-family: var(--font-mono); font-size: var(--text-xs);
+                background: var(--color-surface); border: 1px solid var(--color-border);
+                border-radius: var(--radius-sm); padding: 1px 5px; }
+.lohead__title { font-size: var(--text-md); font-weight: 500; }
+.lohead__count { font-family: var(--font-mono); font-size: var(--text-xs);
+                 color: var(--color-text-secondary); margin-left: auto; }
+
+/* Inputs — 32px, never 36/40 */
+.input { height: 32px; padding: 0 8px; width: 100%;
+         border: 1px solid var(--color-border); border-radius: var(--radius-lg);
+         background: var(--color-surface-alt); font-family: var(--font-sans);
+         font-size: var(--text-base); color: var(--color-text-primary); }
+.input:focus { border-color: var(--color-border-strong); background: var(--color-surface); }
+.field { margin-bottom: 12px; }
+.field label { display: block; font-size: var(--text-base);
+               color: var(--color-text-secondary); margin-bottom: 4px; }
+
+/* Modal — 12px radius */
+.modal { background: var(--color-surface); border: 1px solid var(--color-border);
+         border-radius: var(--radius-xl); box-shadow: var(--shadow-lg);
+         padding: 20px; max-width: 420px; }
+.modal__h { font-size: var(--text-lg); font-weight: 600; margin: 0 0 8px; }
+.modal__p { font-size: var(--text-base); color: var(--color-text-secondary); margin: 0 0 16px; }
+.modal__actions { display: flex; gap: 8px; justify-content: flex-end; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important; animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

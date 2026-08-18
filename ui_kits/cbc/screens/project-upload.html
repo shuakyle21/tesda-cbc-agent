@@ -1,0 +1,129 @@
+<!-- @dsCard group="Screens" -->
+<meta charset="utf-8">
+<title>Screen — Upload &amp; Generate</title>
+<link rel="stylesheet" href="../tokens.css">
+<svg style="display:none">
+  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/><path d="M7 9l5 -5l5 5"/><path d="M12 4v12"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12l5 5l10 -10"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4"/><path d="M12 16h.01"/></symbol>
+  <symbol id="i-tri" viewBox="0 0 24 24"><path d="M12 9v4"/><path d="M10.4 4.6l-8 14a1.7 1.7 0 0 0 1.5 2.5h16.2a1.7 1.7 0 0 0 1.5 -2.5l-8 -14a1.7 1.7 0 0 0 -3 0z"/><path d="M12 17h.01"/></symbol>
+  <symbol id="i-hist" viewBox="0 0 24 24"><path d="M12 8v4l3 3"/><path d="M3.05 11a9 9 0 1 1 .5 4"/><path d="M3 20v-5h5"/></symbol>
+</svg>
+<style>
+  svg[viewBox] { stroke-width:2; stroke:currentColor; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+  .drop svg, .empty svg { stroke-width:1.75; }
+  .badge svg { stroke-width:2.5; }
+  .screen { max-width:640px; background:var(--color-surface); border:1px solid var(--color-border);
+            border-radius:var(--radius-lg); padding:20px; box-shadow:var(--shadow-sm); margin-bottom:32px; }
+  .hd { display:flex; align-items:baseline; margin-bottom:4px; }
+  .hd h2 { font-size:var(--text-xl); font-weight:600; margin:0; }
+  .hd .c { margin-left:auto; font-family:var(--font-mono); font-size:var(--text-xs);
+           color:var(--color-text-secondary); }
+  .sub { font-size:var(--text-sm); color:var(--color-text-secondary); margin:0 0 16px; }
+  .step { font-size:var(--text-md); font-weight:500; margin:20px 0 8px; }
+  .gap { height:12px; }
+</style>
+
+<h1 class="pv-title">Screen &mdash; Upload &amp; Generate</h1>
+<p class="pv-sub">
+  <code>/projects/[id]</code>. Two steps on one page: get a valid TR in, then choose what to
+  generate from it. Both failure modes live here, and neither creates a job.
+</p>
+
+<span class="pv-label">state: no-upload</span>
+<div class="screen">
+  <div class="hd"><h2>Prepare Bakery Products</h2><span class="c">BPP NC II</span></div>
+  <p class="sub">Upload the official Training Regulation, then generate one competency's documents.</p>
+  <div class="drop">
+    <svg viewBox="0 0 24 24"><use href="#i-upload"/></svg>
+    <p class="drop__h">Drop a TESDA Training Regulation PDF, or browse</p>
+    <p class="drop__p">Text-layer PDF only &mdash; scanned or image-only PDFs are rejected.</p>
+  </div>
+  <p class="step" style="color:var(--color-text-disabled)">2 &middot; Select a competency</p>
+  <button class="btn btn--primary" disabled>Generate documents</button>
+</div>
+
+<span class="pv-label">state: rejected &mdash; inline, no job created</span>
+<div class="screen">
+  <div class="hd"><h2>Prepare Bakery Products</h2><span class="c">BPP NC II</span></div>
+  <p class="sub">Upload the official Training Regulation, then generate one competency's documents.</p>
+  <div class="drop drop--rejected" role="alert">
+    <svg viewBox="0 0 24 24"><use href="#i-alert"/></svg>
+    <p class="drop__h">No text layer detected</p>
+    <p class="drop__p">This PDF appears to be scanned. Upload a digitally-typed TR PDF.</p>
+    <div style="margin-top:12px"><button class="btn btn--sm">Choose another file</button></div>
+  </div>
+</div>
+
+<span class="pv-label">state: accepted &mdash; ready to generate</span>
+<div class="screen">
+  <div class="hd"><h2>Prepare Bakery Products</h2><span class="c">BPP NC II</span></div>
+  <p class="sub">Upload the official Training Regulation, then generate one competency's documents.</p>
+  <div class="drop drop--accepted">
+    <svg viewBox="0 0 24 24"><use href="#i-check"/></svg>
+    <p class="drop__h">TR &mdash; Bread and Pastry Production NC II.pdf</p>
+    <p class="drop__p"><span class="mono">1.9 MB</span> &middot; <span class="mono">74</span> pages &middot; text layer present</p>
+    <div style="margin-top:12px"><button class="btn btn--sm">Change file</button></div>
+  </div>
+  <p class="step">2 &middot; Select a competency</p>
+  <div class="field">
+    <select class="input">
+      <option>Prepare and produce bakery products &mdash; 5 learning outcomes, ~26 documents</option>
+      <option>Prepare and produce pastry products &mdash; 4 learning outcomes, ~21 documents</option>
+      <option>Prepare and present gateaux, tortes and cakes &mdash; 5 learning outcomes, ~26 documents</option>
+    </select>
+  </div>
+  <button class="btn btn--primary">Generate documents</button>
+</div>
+
+<span class="pv-label">state: budget-rejected &mdash; before any job exists</span>
+<div class="screen">
+  <div class="hd"><h2>Prepare Bakery Products</h2><span class="c">BPP NC II</span></div>
+  <p class="sub">Upload the official Training Regulation, then generate one competency's documents.</p>
+  <div class="drop drop--accepted">
+    <svg viewBox="0 0 24 24"><use href="#i-check"/></svg>
+    <p class="drop__h">TR &mdash; Bread and Pastry Production NC II.pdf</p>
+    <p class="drop__p"><span class="mono">1.9 MB</span> &middot; <span class="mono">74</span> pages &middot; text layer present</p>
+  </div>
+  <p class="step">2 &middot; Select a competency</p>
+  <div class="field">
+    <select class="input"><option>All competencies &mdash; 12 learning outcomes, ~62 documents</option></select>
+  </div>
+  <div class="callout callout--warning">
+    <svg viewBox="0 0 24 24"><use href="#i-tri"/></svg>
+    <div>This competency is too large for the current run budget
+      (<span class="mono">62</span> estimated LLM calls; the cap is <span class="mono">40</span>).
+      Select a single competency.</div>
+  </div>
+  <div class="gap"></div>
+  <button class="btn btn--primary" disabled>Generate documents</button>
+</div>
+
+<span class="pv-label">prior runs &mdash; below the fold</span>
+<div class="screen">
+  <p class="step" style="margin-top:0">Earlier runs</p>
+  <div class="rowlist">
+    <div class="row">
+      <svg class="row__icon" style="color:var(--color-text-secondary)" viewBox="0 0 24 24"><use href="#i-hist"/></svg>
+      <span class="row__name">Run 2</span>
+      <span class="row__phrase">16 Aug 2026, 14:02</span>
+      <span class="row__spacer"></span>
+      <span class="badge badge--partial">PARTIAL</span>
+      <span class="row__meta" style="margin-left:8px">24 / 26</span>
+    </div>
+    <div class="row">
+      <svg class="row__icon" style="color:var(--color-text-secondary)" viewBox="0 0 24 24"><use href="#i-hist"/></svg>
+      <span class="row__name">Run 1</span>
+      <span class="row__phrase">15 Aug 2026, 09:41</span>
+      <span class="row__spacer"></span>
+      <span class="badge badge--job-failed">RUN FAILED</span>
+      <span class="row__meta" style="margin-left:8px">0 / 26</span>
+    </div>
+  </div>
+</div>
+
+<p class="pv-note">
+  <strong>Neither failure creates a job.</strong> The text-layer check runs inside the upload
+  request; the budget check runs before enqueueing. Both fail fast rather than burning a job
+  slot and a few minutes of free-tier quota to arrive at the same answer.
+</p>

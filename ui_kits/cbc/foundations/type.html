@@ -1,0 +1,70 @@
+<!-- @dsCard group="Foundations" -->
+<meta charset="utf-8">
+<title>Typography</title>
+<link rel="stylesheet" href="../tokens.css">
+<style>
+  .spec { font-family:var(--font-mono); font-size:var(--text-xs);
+          color:var(--color-text-secondary); margin-left:12px; }
+  .line { margin-bottom:12px; display:flex; align-items:baseline; }
+  .yes { color:var(--color-green-dk); }
+  .no  { color:var(--color-red-dk); }
+</style>
+
+<h1 class="pv-title">Typography</h1>
+<p class="pv-sub">
+  IBM Plex Sans and IBM Plex Mono. <strong>Never substitute</strong> Inter, Geist, Roboto,
+  Arial, or a bare system stack. Mono is a semantic signal, not decoration.
+</p>
+
+<h2 class="pv-section">Scale — IBM Plex Sans</h2>
+<div class="pv-panel" style="max-width:720px">
+  <div class="line"><span style="font-size:24px;line-height:30px;font-weight:600">Metric value</span><span class="spec">text-2xl &middot; 24/30 &middot; 600</span></div>
+  <div class="line"><span style="font-size:20px;line-height:26px;font-weight:600">Page heading</span><span class="spec">text-xl &middot; 20/26 &middot; 600</span></div>
+  <div class="line"><span style="font-size:16px;line-height:22px;font-weight:600">Section heading</span><span class="spec">text-lg &middot; 16/22 &middot; 500&ndash;600</span></div>
+  <div class="line"><span style="font-size:14px;line-height:20px;font-weight:500">Card title</span><span class="spec">text-md &middot; 14/20 &middot; 500</span></div>
+  <div class="line"><span style="font-size:13px;line-height:19px">Primary body text &mdash; the default</span><span class="spec">text-base &middot; 13/19 &middot; 400</span></div>
+  <div class="line"><span style="font-size:12px;line-height:17px">Row content</span><span class="spec">text-sm &middot; 12/17 &middot; 400</span></div>
+  <div class="line"><span style="font-size:11px;line-height:15px">Badge label, metadata</span><span class="spec">text-xs &middot; 11/15 &middot; 400&ndash;500</span></div>
+  <div class="line"><span style="font-size:10px;line-height:14px">Footnote</span><span class="spec">text-2xs &middot; 10/14 &middot; 400</span></div>
+</div>
+
+<h2 class="pv-section">Mono is a semantic signal</h2>
+<p class="pv-note">It means &ldquo;a value you might copy, compare, or quote.&rdquo; Not decoration.</p>
+
+<div class="pv-grid">
+  <div class="pv-cell pv-panel" style="min-width:300px">
+    <span class="pv-label yes">Mono &mdash; yes</span>
+    <div class="line"><span class="mono">3f9a1c2e-77b4-4f01-9d3e-1a2b3c4d5e6f</span><span class="spec">job_id</span></div>
+    <div class="line"><span class="mono">LO-3</span><span class="spec">LO identifier</span></div>
+    <div class="line"><span class="mono">BPP NC II</span><span class="spec">qualification code</span></div>
+    <div class="line"><span class="mono">16 Aug 2026, 14:02</span><span class="spec">timestamp</span></div>
+    <div class="line"><span class="mono">4s</span><span class="spec">duration</span></div>
+    <div class="line"><span class="mono">24 / 26</span><span class="spec">count</span></div>
+    <div class="line"><span class="mono">(1/2)</span><span class="spec">retry counter</span></div>
+    <div class="line"><span class="mono">Traceback (most recent call last):</span><span class="spec">error block</span></div>
+  </div>
+  <div class="pv-cell pv-panel" style="min-width:300px">
+    <span class="pv-label no">Mono &mdash; never</span>
+    <div class="line"><span style="font-size:14px;font-weight:500">Prepare Bakery Products</span><span class="spec">document / qualification title</span></div>
+    <div class="line"><span style="font-weight:500">Session Plan</span><span class="spec">node display name</span></div>
+    <div class="line"><span>Projects</span><span class="spec">nav label</span></div>
+    <div class="line"><span style="font-size:20px;font-weight:600">Run progress</span><span class="spec">heading</span></div>
+    <div class="line"><span>Re-run generation</span><span class="spec">button</span></div>
+    <div class="line"><span>No text layer detected.</span><span class="spec">body prose</span></div>
+  </div>
+</div>
+
+<h2 class="pv-section">In context</h2>
+<div class="rowlist" style="max-width:600px">
+  <div class="row">
+    <span class="row__name">Session Plan</span>
+    <span class="row__lo">LO-2</span>
+    <span class="row__phrase">failed validation, retrying</span>
+    <span class="row__spacer"></span>
+    <span class="row__meta">(1/2)</span>
+  </div>
+</div>
+<p class="pv-note">
+  Sans for the node name and the phrase; mono for the LO chip and the retry counter. That split
+  is the rule, applied once.
+</p>

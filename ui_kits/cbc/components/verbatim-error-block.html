@@ -1,0 +1,118 @@
+<!-- @dsCard group="Status & Feedback" -->
+<meta charset="utf-8">
+<title>Verbatim Error Block</title>
+<link rel="stylesheet" href="../tokens.css">
+<svg style="display:none">
+  <symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4"/><path d="M12 16h.01"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12l5 5l10 -10"/></symbol>
+</svg>
+<style>
+  .callout svg, .btn svg { stroke-width:2; stroke:currentColor; fill:none; stroke-linecap:round; stroke-linejoin:round; }
+  .eb { max-width:700px; }
+  .eb__h { font-size:var(--text-md); font-weight:500; margin:0 0 8px; }
+</style>
+
+<h1 class="pv-title">Verbatim Error Block</h1>
+<p class="pv-sub">
+  Shows <code>jobs.error</code> — which the architecture doc says is surfaced
+  <strong>verbatim</strong>, and may be a raw Python traceback — without making the UI itself
+  look broken.
+</p>
+
+<div class="callout callout--error" style="max-width:700px;margin-bottom:32px">
+  <svg viewBox="0 0 24 24"><use href="#i-alert"/></svg>
+  <div>
+    <strong>Never regex, truncate, or prettify the exception string.</strong> The plain-language
+    header is derived from <em>structured fields only</em> (the last
+    <code>job_events.node_name</code>). The block itself is byte-for-byte what the backend
+    returned — the trainer may need to paste it to whoever can fix it, and a helpfully-trimmed
+    traceback is a useless one.
+  </div>
+</div>
+
+<h2 class="pv-section">State: collapsed (default)</h2>
+<div class="eb pv-panel">
+  <p class="eb__h">The Parser stopped unexpectedly.</p>
+  <div class="errblk">
+    <details>
+      <summary>Show technical detail</summary>
+    </details>
+  </div>
+</div>
+
+<h2 class="pv-section">State: expanded</h2>
+<div class="eb pv-panel">
+  <p class="eb__h">The Parser stopped unexpectedly.</p>
+  <div class="errblk">
+    <details open>
+      <summary>Hide technical detail</summary>
+      <pre>Traceback (most recent call last):
+  File "/app/agents/parser.py", line 118, in structure_tables
+    competency = CompetencyData.model_validate_json(raw)
+  File "/usr/local/lib/python3.12/site-packages/pydantic/main.py", line 656, in model_validate_json
+    return cls.__pydantic_validator__.validate_json(json_data)
+pydantic_core._pydantic_core.ValidationError: 2 validation errors for CompetencyData
+learning_outcomes.3.assessment_criteria
+  Input should be a valid list [type=list_type, input_value='Prepared according to ent...', input_type=str]
+learning_outcomes.4.title
+  Field required [type=missing, input_value={'assessment_criteria': [...]}, input_type=dict]</pre>
+    </details>
+    <div style="margin-top:8px">
+      <button class="btn btn--sm"><svg viewBox="0 0 24 24"><use href="#i-copy"/></svg>Copy</button>
+    </div>
+  </div>
+</div>
+
+<h2 class="pv-section">State: copied</h2>
+<div class="eb pv-panel">
+  <p class="eb__h">The Retriever stopped unexpectedly.</p>
+  <div class="errblk">
+    <details open>
+      <summary>Hide technical detail</summary>
+      <pre>httpx.ReadTimeout: The read operation timed out</pre>
+    </details>
+    <div style="margin-top:8px">
+      <button class="btn btn--sm" style="color:var(--color-green-dk);border-color:var(--color-green-border);background:var(--color-green-lt)">
+        <svg viewBox="0 0 24 24"><use href="#i-check"/></svg>Copied</button>
+    </div>
+  </div>
+</div>
+
+<h2 class="pv-section">Long, ugly, and unwrapped — still contained</h2>
+<p class="pv-note">
+  <code>white-space: pre-wrap</code>, <code>overflow-x: auto</code>,
+  <code>max-height: 240px</code> with vertical scroll. A 400-line traceback must not push the
+  re-run button off the screen.
+</p>
+<div class="eb pv-panel">
+  <p class="eb__h">The CBLM Sections drafter stopped unexpectedly.</p>
+  <div class="errblk">
+    <details open>
+      <summary>Hide technical detail</summary>
+      <pre>Traceback (most recent call last):
+  File "/app/graph/nodes.py", line 212, in cblm_drafter
+    result = await client.chat.completions.create(model=MODEL, messages=msgs, timeout=90)
+  File "/usr/local/lib/python3.12/site-packages/groq/_base_client.py", line 1041, in create
+    return await self._post(path, body=body, options=options, cast_to=cast_to, stream=stream)
+groq.RateLimitError: Error code: 429 - {'error': {'message': 'Rate limit reached for model `llama-3.3-70b-versatile` in organization `org_01abc` on tokens per minute (TPM): Limit 6000, Used 5987, Requested 812. Please try again in 7.99s.', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}
+  File "/app/graph/nodes.py", line 216, in cblm_drafter
+    raise DrafterFailure(f"LO {lo.lo_id} section {section_type} exhausted transport retries") from exc
+app.errors.DrafterFailure: LO LO-4 section answer_key exhausted transport retries</pre>
+    </details>
+    <div style="margin-top:8px">
+      <button class="btn btn--sm"><svg viewBox="0 0 24 24"><use href="#i-copy"/></svg>Copy</button>
+    </div>
+  </div>
+</div>
+
+<hr class="pv-rule">
+<p class="pv-note">
+  <strong>Header derivation.</strong> Map the last <code>node_name</code> through the display
+  table — <code>parser</code> &rarr; &ldquo;The Parser stopped unexpectedly.&rdquo; Never parse
+  the exception text to build the header; the mapping is from structured data or it does not
+  happen.
+  <br><br>
+  <strong>a11y:</strong> native <code>&lt;details&gt;</code>/<code>&lt;summary&gt;</code> —
+  keyboard-operable for free, and the disclosure state is announced without ARIA.
+</p>
