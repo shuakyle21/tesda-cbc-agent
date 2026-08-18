@@ -9,12 +9,12 @@ exemplar RAG. See `CBC_DOMAIN_RULES.md` for the domain rules and `PLAN.md` §1 f
 
 ## 0. Foundation
 
-- [ ] Create the Python environment and lock dependencies.
-- [ ] Create the FastAPI app skeleton.
-- [ ] Add config loading for environment variables.
-- [ ] Add formatting, linting, and test commands.
-- [ ] Add a `/health` endpoint.
-- [ ] Confirm `/docs` is available.
+- [x] Create the Python environment and lock dependencies.
+- [x] Create the FastAPI app skeleton.
+- [x] Add config loading for environment variables.
+- [x] Add formatting, linting, and test commands.
+- [x] Add a `/health` endpoint.
+- [x] Confirm `/docs` is available.
 
 ## 1. Data model
 
