@@ -16,3 +16,4 @@ venv/
 # Node (frontend)
 node_modules/
 .next/
+.claude
