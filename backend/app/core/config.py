@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     environment: str = "development"
     llm_api_key: str = ""
     llm_model: str = ""
+    database_url: str = ""
 
 
 @lru_cache
