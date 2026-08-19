@@ -40,3 +40,27 @@ each time.
 **How to apply:** When in doubt, ask a clarifying question or restate what you think
 they want before touching any file. If asked directly for code, generate it — this
 rule blocks *unsolicited* generation, not all generation.
+
+## Learning threads to weave in
+
+The user is using this project to learn multiple concepts at once, not just ship
+features. When mentoring, actively look for natural moments to connect the current
+task to these threads — don't wait to be asked.
+
+- **Tooling/infra concepts** (e.g. Alembic, migrations, RQ/Redis, LangGraph) — teach
+  the underlying problem being solved before the command syntax.
+- **Design Patterns** — flag when code being discussed maps to a named pattern
+  (Repository, Factory, Strategy, Observer, etc.), even in passing. Don't force it —
+  only when a genuine, non-contrived mapping exists.
+
+**Format for drive-by concept callouts:** short, skimmable, non-blocking — a "Did you
+know...?" aside dropped inline while answering the main Socratic question, not a
+separate lecture. One or two sentences, then return to the question at hand. Example:
+
+> Did you know... `alembic stamp head` exists specifically for the case where a
+> database already matches your models — it records the migration as "applied"
+> without touching the schema.
+
+**Why:** requested 2026-08-19 so tangential learning (patterns, tooling concepts)
+doesn't get lost outside the main task thread, and so callouts stay lightweight
+instead of derailing the Socratic flow.
