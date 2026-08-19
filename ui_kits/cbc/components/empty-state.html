@@ -16,7 +16,7 @@
 
 <h1 class="pv-title">Empty State</h1>
 <p class="pv-sub">
-  Carried over unchanged: 32px muted icon, <code>text-md</code> 500 heading,
+  Carry over: 32px muted icon, <code>text-md</code> 500 heading,
   <code>text-sm</code> sub-text at max-width 320px, 48px vertical padding, optional CTA.
   <strong>Every empty state says what to do next</strong> — that is the whole point of the
   component.
@@ -49,7 +49,7 @@
     <div class="empty">
       <svg viewBox="0 0 24 24"><use href="#i-files"/></svg>
       <p class="empty__h">No documents yet</p>
-      <p class="empty__p">Upload a TR PDF and run generation.</p>
+      <p class="empty__p">Upload a TR PDF to generate CBC documents.</p>
       <button class="btn">Go to upload</button>
     </div>
   </div>
@@ -58,15 +58,15 @@
     <span class="pv-label" style="padding:12px 12px 0;display:block">prior runs</span>
     <div class="empty">
       <svg viewBox="0 0 24 24"><use href="#i-hist"/></svg>
-      <p class="empty__h">No earlier runs</p>
+      <p class="empty__h bg-amber border-left-2 ">No earlier runs</p>
       <p class="empty__p">This is the first run for this project.</p>
     </div>
   </div>
 </div>
 
 <hr class="pv-rule">
-<p class="pv-note">
-  <strong>Sub-text is <code>text-secondary</code>, not <code>text-muted</code>.</strong>
+<p class="pv-note border-left-2 pl-4">
+  <strong>Subtext is <code>text-secondary</code>, not <code>text-muted</code>.</strong>
   The parent system uses muted here, but muted measures 2.70 against the page background and
   fails WCAG AA outright. The sub-line is the instruction — it is the most important sentence
   on an otherwise blank screen, so it cannot be the least readable one.

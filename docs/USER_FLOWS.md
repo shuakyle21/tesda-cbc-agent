@@ -23,20 +23,22 @@ flowchart TD
     NEW --> SRC
     OPEN --> SRC
 
-    SRC["<b>Sources</b><br/>add TR, CBC, references"]
+    SRC["<b>Sources</b><br/>add TR (.pdf) + Enhanced CBC (.docx)"]
     SRC --> CHK{"Usable TR<br/>AND CBC?"}
-    CHK -->|no| BLOCK["<b>Generate stays unreachable</b><br/>panel names what is missing<br/>and why the CBC matters"]
+    CHK -->|no| BLOCK["<b>Parse stays unreachable</b><br/>panel names what is missing<br/>and why the CBC matters"]
     BLOCK --> SRC
-    CHK -->|yes| CFG
+    CHK -->|yes| PARSE["<b>Parse</b> <i>job(kind=parse)</i><br/>parse_tr + parse_cbc<br/>align_sources"]
 
-    CFG["<b>Configure</b><br/>qualification detected<br/>pick unit of competency<br/>pick document type"]
-    CFG --> COST{"Within run<br/>budget?"}
+    PARSE --> SEL["<b>Selection</b> &nbsp;&#9208; job boundary<br/>pick unit of competency<br/>pick learning outcome(s)<br/>unmatched TR&#8596;CBC pairs surfaced"]
+    SEL --> COST{"Within run<br/>budget?"}
     COST -->|no| OVER["<b>Rejected before a job exists</b><br/>Generate disabled<br/>suggests a smaller scope"]
-    OVER --> CFG
+    OVER --> SEL
     COST -->|yes| GEN["Generate"]
 
-    GEN --> RUN["<b>Run</b><br/>pipeline step list<br/>cost meter counts up"]
-    RUN --> OUT{"Outcome"}
+    GEN --> RUN1["<b>Run</b> <i>job(kind=generate)</i><br/>drafting_plan"]
+    RUN1 --> REV["<b>Review</b> &nbsp;&#9208; <code>awaiting_review</code><br/>Session Plan shown read-only<br/>approve &#8594; POST /jobs/{id}/resume"]
+    REV -->|approved| RUN2["<b>Run</b> continues<br/>drafting_cblm &#8594; validating &#8594; exporting"]
+    RUN2 --> OUT{"Outcome"}
 
     OUT -->|"all documents ok"| CLEAN["<b>Complete</b><br/>green banner"]
     OUT -->|"some failed_after_retries"| PART["<b>Completed with gaps</b><br/>amber banner + gap list"]
@@ -56,7 +58,7 @@ flowchart TD
     classDef step fill:#1e3a5f,stroke:#4a90d9,color:#fff
     classDef term fill:#333,stroke:#888,color:#fff
 
-    class SRC,CFG,RUN,GEN,NEW,OPEN step
+    class SRC,SEL,PARSE,RUN1,RUN2,REV,GEN,NEW,OPEN step
     class CLEAN,DL ok
     class PART,OVER,BLOCK warn
     class FAIL bad
@@ -64,44 +66,52 @@ flowchart TD
 ```
 
 **Both loops return to a screen the trainer can act on.** Missing sources returns to Sources;
-over budget returns to Configure. Neither is a dead end, and neither costs an LLM call.
+over budget returns to Selection. Neither is a dead end, and neither costs a *generation* call.
 
 ---
 
 ## 2. Where a trainer gets blocked, and what it costs
 
-Four blocking points. **Three of them are free** — they happen before a job is enqueued,
-so a blocked trainer has spent nothing.
+Four blocking points. **Two of them are free** — they happen before any job is enqueued,
+so a blocked trainer has spent nothing. The other two sit behind a job that has already run.
 
 | # | Block | When | Cost | Recovery |
 |---|---|---|---|---|
 | 1 | **Scanned PDF** | inside the upload request | free | Choose another file; the file is not kept |
 | 2 | **Missing TR or CBC** | on the Sources screen | free | Add the missing source |
-| 3 | **Over budget** | on Configure, pre-enqueue | free | Smaller unit, or Session Plans instead of CBLM |
+| 3 | **Over budget** | on Selection, pre-enqueue of the *generate* job | **parse already spent** — `parse_tr` uses an LLM to structure the TR | Smaller unit, or Session Plans instead of CBLM |
 | 4 | **Run failed** | mid-pipeline | **spent** | Re-run, or change sources first |
 
-Only #4 costs anything, and it is the only one the trainer cannot see coming.
+#4 is the only one the trainer cannot see coming. #3 became non-free when Selection moved
+after the parse job — the UC/LO dropdowns are populated from `parsed_structure`, so the TR
+must be parsed before there is anything to pick. That is a deliberate trade: a cheap parse
+buys a selection screen that cannot offer a unit the sources don't contain.
 
 ```mermaid
 flowchart LR
     U["Upload a file"] --> V{"Text layer?"}
     V -->|no| R1["Rejected in place<br/><i>file not kept</i>"] --> U
     V -->|yes| ROLE{"Role?"}
-    ROLE -->|"TR / CBC"| FACTS["Parsed for facts<br/>→ drafter prompt"]
-    ROLE -->|"Reference"| STYLE["Chunked + embedded<br/>→ retrieval corpus"]
+    ROLE -->|"TR (.pdf)"| FACTS["pdfplumber tables → repair → LLM<br/><b>grounding authority</b>"]
+    ROLE -->|"Enhanced CBC (.docx)"| CBC["python-docx, deterministic<br/><b>drives per-LO generation</b>"]
     FACTS --> READY
-    STYLE --> READY["Source library"]
+    CBC --> READY["Source library"]
 
     classDef bad fill:#5a1e1e,stroke:#d94a4a,color:#fff
     classDef key fill:#1e3a5f,stroke:#4a90d9,color:#fff
     class R1 bad
-    class FACTS,STYLE key
+    class FACTS,CBC key
 ```
 
 **Role is the branch that matters most and the one a trainer is least likely to notice.**
-A CBC mis-tagged as Reference does not fail — it silently becomes style data, and the run
-proceeds without curriculum contents. That is why the Add Source modal makes role explicit
-and editable before the file is committed.
+The two roles are parsed by different code paths and are not interchangeable: a `.docx`
+tagged as TR hits `pdfplumber` and yields nothing. That is why the Add Source modal makes
+role explicit and editable before the file is committed.
+
+**There is no Reference role in the MVP.** Exemplar retrieval was cut along with the vector
+store (`PLAN.md` §1, Grounding + Vector store rows) — style now comes deterministically from
+the 2026 Style Specification Matrix, not from a corpus. Only two uploads exist, and both are
+required.
 
 ---
 
@@ -157,7 +167,7 @@ Second and later visits are much shorter, because sources persist per project.
 ```mermaid
 flowchart LR
     OPEN([Open an existing project]) --> HAS{"Sources still<br/>attached?"}
-    HAS -->|yes| CFG["Configure<br/><i>skip Sources entirely</i>"]
+    HAS -->|yes| CFG["Selection<br/><i>skip Sources and parse entirely</i>"]
     HAS -->|no| SRC["Sources"] --> CFG
     CFG --> PICK{"What changed?"}
     PICK -->|"same unit, other doc type"| G1["Generate CBLM<br/>after Session Plans"]
@@ -188,9 +198,14 @@ Things that only become visible once the flows are laid side by side.
 **A trainer can reach Results without ever running anything.** Nav is always available, so
 Results must have a real empty state, not a blank screen. Covered.
 
-**Configure is unreachable without both sources, but Run and Results are not.** A trainer
-can navigate to a previous run's results at any time. That is correct — results are durable,
-Configure is a decision that needs inputs.
+**Selection is unreachable without both sources parsed, but Run and Results are not.** A
+trainer can navigate to a previous run's results at any time. That is correct — results are
+durable, Selection is a decision that needs parsed inputs.
+
+**Review is a halt, not a block.** `awaiting_review` is the one state where the pipeline is
+healthy and still will not advance: `draft_cblm` runs only after `POST /jobs/{id}/resume`.
+It costs nothing to sit there, but the run is not finished and the trainer is the only thing
+that can move it. It needs a screen for exactly that reason.
 
 **Nothing in the product deletes a document.** Re-running overwrites; there is no destructive
 action anywhere in these flows. Worth keeping that way.

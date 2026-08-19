@@ -1,0 +1,60 @@
+Phase 1: Unblock and establish the contract
+
+ Fix the import/redeclaration issue in `/Users/gabz_1/tesda-cbc-agent/backend/app/api/projects.py` and keep the router owned by that module. Use the documented public route `/projects`, removing the current `/api` prefix from `/Users/gabz_1/tesda-cbc-agent/backend/app/main.py` unless a later API versioning decision changes it.
+2. Add focused backend tests for app import, `GET /projects`, and route registration. Run the foundation checks before proceeding.
+3. Confirm the persistence boundary: Supabase Postgres and storage are the intended services, but the migration mechanism and local test strategy must be selected before schema work. Preserve the locked MVP entities and `generated_documents.content` as JSONB.
+
+Phase 2: Data model and M0 smoke test
+
+4. Add migrations for `projects`, `source_uploads`, `parsed_structures`, `jobs`, `session_plans`, `job_events`, and `generated_documents`; include `corpus_chunks` only as the unused RAG-insurance table required by the checklist. Enforce the documented role/kind/status values and `jobs.checkpoint` / `session_plans.approved_at` fields.
+5. In parallel with step 4, prepare the M0 fixture and hand-label one competency’s TR Element to performance-criteria mapping. Identify the real TR sample already referenced by the project plan, or record the missing-input blocker explicitly.
+6. Define the nested Pydantic extraction contract (`Competency` -> `LearningOutcome` -> `AssessmentCriterion`) and run the same structured extraction prompt against the selected Groq/OpenRouter model about 10 times. Measure schema-valid results, correct criterion-to-LO attachment, and rate-limit behavior.
+7. Gate the next implementation decision on M0: at least 9/10 clean, correctly attached results proceeds with the chosen model; otherwise record the fallback/retry or stronger-model decision before parser integration.
+
+Phase 3: Parsers and alignment
+
+8. Implement upload storage and role validation for the two required inputs: reject scanned TR PDFs without a text layer and reject non-`.docx` CBC files. Persist metadata and source paths through the chosen storage boundary.
+9. Implement the TR parser using `pdfplumber.extract_tables()`, whitespace repair, LLM structuring, and Pydantic validation. Parse the TR in full and preserve table cell boundaries so performance criteria cannot silently attach to the wrong Element.
+10. Implement the deterministic CBC parser with `python-docx`; do not use an LLM for CBC structure or add OCR/vision to the MVP.
+11. Implement deterministic `align_sources` for TR Element to CBC Learning Outcome. Surface unmatched pairs for human confirmation and never guess an association.
+12. Persist parsed structures as a cache and add `GET /projects/{id}/structure` for UC and LO selection. Add focused tests for text-layer rejection, CBC format rejection, table/whitespace handling, CBC extraction, complete joins, and unmatched pairs.
+
+Optional parallel work
+
+13. If the real TESDA Session Plan and CBLM documents are available, templatize them in parallel with Phase 2 and 3: preserve styles, headers, footers, and tables while inserting `docxtpl` tags. This is independent of parser and graph code, but export remains outside this TODO’s completion gate.
+14. Add `/Users/gabz_1/tesda-cbc-agent/.vscode/tasks.json` with non-destructive tasks for backend import validation, focused tests, full tests, lint/format checks, and the M0 smoke-test command. Keep task labels and dependencies aligned with this checklist so the TODO is executable from VS Code.
+
+**Relevant files**
+
+- `/Users/gabz_1/tesda-cbc-agent/backend/app/api/projects.py` — repair the router ownership and projects endpoint.
+- `/Users/gabz_1/tesda-cbc-agent/backend/app/main.py` — align route registration with the documented `/projects` contract.
+- `/Users/gabz_1/tesda-cbc-agent/backend/tests/` — add foundation, upload, parser, and alignment tests close to each behavior.
+- `/Users/gabz_1/tesda-cbc-agent/backend/pyproject.toml` — update dependencies and test/lint configuration only as required by the selected persistence, PDF, DOCX, and extraction tooling.
+- `/Users/gabz_1/tesda-cbc-agent/docs/BUILD_CHECKLIST.md` — source of truth for milestone gates; update checkboxes/results only when implementation is actually completed.
+- `/Users/gabz_1/tesda-cbc-agent/docs/PLAN.md` — locked scope, M0 gate, parser contract, and state model to reuse.
+- `/Users/gabz_1/tesda-cbc-agent/docs/CBC_DOMAIN_RULES.md` — traceability and terminology constraints for parser/alignment outputs.
+- `/Users/gabz_1/tesda-cbc-agent/docs/SYSTEM_DESIGN.md` — API and persistence details, checked against the revised plan before implementation.
+- `/Users/gabz_1/tesda-cbc-agent/frontend/AGENTS.md` — read only when a later frontend slice begins; frontend changes are excluded here.
+
+**Verification**
+
+1. Run `cd /Users/gabz_1/tesda-cbc-agent/backend && uv run python -c "from app.main import app; print(app.title)"` to disconfirm the current router import blocker.
+2. Run `cd /Users/gabz_1/tesda-cbc-agent/backend && uv run pytest -q` and `uv run ruff check . && uv run ruff format --check .` after the foundation fix.
+3. Verify the OpenAPI route list contains `/projects` and does not accidentally expose only `/api/projects`.
+4. Run the M0 smoke test 10 times against one fixed TR input and record schema validity, correct LO attachment, and rate-limit observations in a repository document or test artifact approved during implementation.
+5. Run focused parser/alignment tests, then the full backend suite, after Phase 3.
+6. For the optional template track, render one filled document and compare styles, tables, headers, footers, and numbering against the original before marking it complete.
+
+**Decisions**
+
+- Scope is the next backend milestone through parser/alignment readiness, not the complete MVP.
+- The public API uses documented `/projects` and `/jobs` paths; do not preserve the accidental `/api` prefix without a new explicit decision.
+- The TODO is intended for VS Code integration and handoff, not as embedded application behavior. Provide both the visible Copilot checklist and a repository-level `.vscode/tasks.json` with executable, non-destructive validation tasks; no task comments, roadmap constants, or UI TODO panels belong in production code.
+- Frontend fixture replacement, RQ/Redis execution, LangGraph nodes, review/resume, validation/retry, document export, deployment, auth, OCR, and default RAG are excluded from this milestone.
+- The Enhanced CBC remains a required input and is never generated.
+
+**Further Considerations**
+
+1. Confirm the migration tool and local database test strategy before writing schema migrations; recommendation: use the project’s chosen Supabase migration workflow and keep parser tests fixture-based without requiring a live service.
+2. Confirm the real TR/CBC fixtures and LLM credentials before M0; missing fixtures or credentials should be tracked as explicit blockers, not replaced with synthetic success data.
+3. Keep `/memories/session/plan.md` as the persisted plan, use the VS Code plan/handoff checklist as the visible TODO, and add `.vscode/tasks.json` as the executable integration layer without embedding roadmap behavior in the application.
