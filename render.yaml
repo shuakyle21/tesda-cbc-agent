@@ -1,0 +1,76 @@
+# Render Blueprint — tesda-cbc-agent
+#
+# STATUS: deploys the FastAPI service only. PLAN.md §1 defers hosting ("Decide hosting
+# after the pipeline works") and BUILD_CHECKLIST.md is 6/67 done, so the API currently
+# serves /health and /docs and nothing else. This file exists so deployment is a solved
+# problem when the pipeline lands, not a scramble.
+#
+# The queue and worker are declared but commented out on purpose — see the note above
+# each. Uncommenting them before BUILD_CHECKLIST §5 would deploy a service that
+# crash-loops, because `rq` is not yet a dependency and no jobs are enqueued.
+#
+# Postgres and file storage are NOT declared here: PLAN.md §1 uses Supabase for both.
+# That is the right call on Render specifically — Render's free Postgres expires 30 days
+# after creation and becomes inaccessible.
+
+services:
+  - name: cblm-api
+    type: web
+    runtime: python
+    plan: free # 750 instance-hours/month; spins down after 15 min idle (~1 min cold start)
+    rootDir: ./backend # uv requires uv.lock in the SERVICE root, not the repo root
+    buildCommand: uv sync --frozen
+    # `uv run` rather than bare uvicorn so the command resolves inside uv's venv
+    # regardless of how Render sets PATH.
+    startCommand: uv run uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      # sync: false = set the value in the Render dashboard, never in this file
+      - key: LLM_API_KEY
+        sync: false
+      - key: LLM_MODEL
+        sync: false
+      # Uncomment together with the keyvalue service below.
+      # - key: REDIS_URL
+      #   fromService:
+      #     name: cblm-queue
+      #     type: keyvalue
+      #     property: connectionString
+
+  # --- Uncomment from BUILD_CHECKLIST §5 onward -------------------------------------
+  #
+  # Render's free Key Value is IN-MEMORY ONLY: everything is lost on restart, and there
+  # is one free instance per workspace. For a queue that means queued and in-flight jobs
+  # vanish whenever the instance restarts. Acceptable for a demo; not for real runs.
+  #
+  # - name: cblm-queue
+  #   type: keyvalue
+  #   plan: free
+  #   ipAllowList: [] # empty = internal Render network only, no public access
+  #
+  # BACKGROUND WORKERS ARE NOT AVAILABLE ON RENDER'S FREE TIER. This service costs money
+  # from the moment it exists. It is also the piece PLAN.md §1 locks in ("RQ + Redis,
+  # background job, not synchronous request"), so there is no free way to honour that
+  # decision on Render — see the deployment notes in the README.
+  #
+  # - name: cblm-worker
+  #   type: worker
+  #   runtime: python
+  #   plan: starter
+  #   rootDir: ./backend
+  #   buildCommand: uv sync --frozen
+  #   startCommand: uv run rq worker --url $REDIS_URL cblm
+  #   envVars:
+  #     - key: ENVIRONMENT
+  #       value: production
+  #     - key: LLM_API_KEY
+  #       sync: false
+  #     - key: LLM_MODEL
+  #       sync: false
+  #     - key: REDIS_URL
+  #       fromService:
+  #         name: cblm-queue
+  #         type: keyvalue
+  #         property: connectionString

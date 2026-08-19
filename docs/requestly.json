@@ -1,0 +1,18 @@
+{
+  "name": "tesda-cbc-agent-local-api",
+  "baseUrl": "http://localhost:8000",
+  "rules": [
+    {
+      "name": "Mock health endpoint",
+      "method": "GET",
+      "path": "/health",
+      "statusCode": 200,
+      "responseHeaders": {
+        "content-type": "application/json"
+      },
+      "responseBody": {
+        "status": "ok"
+      }
+    }
+  ]
+}

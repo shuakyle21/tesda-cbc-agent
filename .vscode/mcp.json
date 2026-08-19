@@ -1,0 +1,16 @@
+{
+	"servers": {
+		"todiagram": {
+			"type": "stdio",
+			"command": "npx",
+			"args": [
+				"-y",
+				"@todiagram/todiagram-mcp@latest"
+			],
+			"env": {
+				"TODIAGRAM_API_KEY": "147eb33e-b64e-4fdf-8f55-5596024279fb"
+			}
+		}
+	},
+	"inputs": []
+}
