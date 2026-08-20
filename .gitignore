@@ -20,3 +20,9 @@ node_modules/
 .claude
 .agents
 .skills-lock.json
+
+#Folders
+graphify-out/
+prototype/
+reference/
+ui_kits/
