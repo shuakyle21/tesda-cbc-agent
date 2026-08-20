@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "todiagram": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@todiagram/todiagram-mcp@latest"],
+      "env": {
+        "TODIAGRAM_API_KEY": "${TODIAGRAM_API_KEY}"
+      }
+    }
+  }
+}
