@@ -23,9 +23,15 @@ Next.js (minimal UI)  ──▶  FastAPI  ──enqueue──▶  Redis (RQ)
                                                       │
                         ┌──────────────┬──────────────┼──────────────┐
                         ▼              ▼              ▼              ▼
-                  Groq/OpenRouter  Embeddings     Pinecone     Supabase
-                     (LLM)           (API)      (vectors)   (Postgres + Storage)
+                  Groq/OpenRouter   RetrieverProtocol  Pinecone     Supabase
+                     (LLM)         (few-shot default) (unused by  (Postgres + Storage)
+                                                        default —
+                                                        RAG insurance)
 ```
+
+Both the TR PDF and the Enhanced CBC `.docx` are uploaded up front
+(`source_uploads.role` = `tr` | `cbc` | `reference`) — the CBC is a required input, not
+a pipeline output. See §3.
 
 **The load-bearing boundary: FastAPI never calls an LLM.** All AI work happens inside the
 worker process. The API's job is to accept uploads, enqueue work, and serve status and
@@ -36,44 +42,61 @@ change would put an LLM call behind an HTTP handler, that change is wrong.
 
 | Component | Responsibility | Explicitly not responsible for |
 |---|---|---|
-| **Next.js UI** | Upload form, job-status view, download links | Any product surface beyond those three things |
+| **Next.js UI** | Upload form (TR + Enhanced CBC), job-status view, download links | Any product surface beyond those three things |
 | **FastAPI** | Sole API surface; upload + fail-fast text-layer check; enqueue; status; signed downloads | LLM calls, generation logic, orchestration |
 | **Redis / RQ** | Job queue and worker lifecycle | Application state (that lives in Postgres) |
-| **LangGraph graph** | The agent workflow — nodes, explicit state, conditional branching | Being simplified into a linear chain |
-| **Supabase** | Postgres (projects, uploads, jobs, events, documents) + Storage (TR PDFs, generated `.docx`) | Auth (not used in MVP), vectors |
-| **Pinecone** | Exemplar corpus vectors, filtered by `section_type` | Holding any TR content |
+| **LangGraph graph** | The agent workflow — nodes, explicit state, conditional branching | Being simplified into a linear chain; generating the CBC Module |
+| **Supabase** | Postgres (projects, source uploads, parsed structures, jobs, events, session plans, documents) + Storage (TR PDFs, CBC `.docx`, generated `.docx`) | Auth (not used in MVP), vectors |
+| **Pinecone** | Exemplar corpus vectors, filtered by `section_type` — kept as RAG insurance, unused by default | Holding any TR content |
 
 Supabase is used as a database and a bucket. No auth, no RLS, no edge functions in MVP.
 
 ## 3. The pipeline
 
+Both the TR PDF and the Enhanced CBC `.docx` are required uploads — the CBC Module is
+**not generated**; it is input. This deletes the pipeline's hardest node (the old
+TR→CBC Formatter) and its compounding-error chain (locked `PLAN.md` §1, 2026-08-18).
+
 ```
-Parser ──▶ Retriever ──┬──▶ CBC Formatter (deterministic, no LLM)
-                       ├──▶ Session Plan Drafter  (1 per LO)
-                       └──▶ CBLM Drafter          (4 sections per LO)
-                                   │
-                                   ▼
-                              Validator ──fail──▶ back to the failing drafter
-                                   │              (bounded: 2 retries)
-                                  pass
-                                   ▼
+Parser (TR + CBC) ──▶ Human selects UC + LO(s)
+                            │
+                            ▼
+                  Session Plan Drafter (1 per LO) ──▶ Review interrupt
+                                                       (checkpoint, job ends)
+                                                              │
+                                                     resume ──┘
+                                                              ▼
+                                              CBLM Drafter (4 sections per LO)
+                                                              │
+                                                              ▼
+                                    Validator ──fail──▶ back to CBLM Drafter
+                                         │               (bounded: 2 retries)
+                                        pass
+                                         ▼
                                 Export (docxtpl → TESDA templates)
 ```
 
 Node responsibilities:
 
-- **Parser** — `pdfplumber.extract_tables()` → whitespace repair → LLM structuring →
-  Pydantic validation. Table-aware by requirement: flat text extraction loses column
-  boundaries and misattributes performance criteria *silently*. Output is cached in
-  `tr_uploads.parsed_json` so re-runs skip re-parsing.
-- **Retriever** — Pinecone similarity search filtered by target section type. Never
-  returns TR content, by corpus construction.
-- **CBC Formatter** — deterministic. Applies the TR→CBC mapping in
-  `CBC_DOMAIN_RULES.md` §2. No LLM call, no RAG, no fresh authorship.
-- **Drafters** — LLM, RAG-grounded. Facts from the TR via prompt; style from retrieved
-  exemplars. Session Plans and CBLM sections are drafted from the derived CBC, not
-  directly from the TR.
-- **Validator** — deterministic structural checks only. Never an LLM-as-judge.
+- **Parser** — `pdfplumber.extract_tables()` on the TR → whitespace repair → LLM
+  structuring → Pydantic validation, plus a `.docx` parse of the Enhanced CBC.
+  Table-aware by requirement: flat text extraction loses column boundaries and
+  misattributes performance criteria *silently*. Output is cached in
+  `parsed_structures.structure` so re-runs skip re-parsing.
+- **Human selection** — trainer picks a Unit of Competency and one or more Learning
+  Outcomes from the parsed CBC before generation starts. Not an LLM step.
+- **Drafters** — LLM, TR-grounded. Facts and traceability come from the TR via prompt;
+  the CBC drives per-LO generation; style is supplied deterministically by the 2026
+  Style Specification Matrix + Caravan house rules, not by retrieval
+  (`CBC_DOMAIN_RULES.md` §1, §8). `RetrieverProtocol` (few-shot default) is kept behind
+  the interface as insurance, not the grounding source. Everything generated must trace
+  to an Assessment Criterion → CBC assessment criterion → TR performance criterion /
+  critical aspect.
+- **Review interrupt** — the Session Plan pauses the graph for human approval/edit
+  before CBLM drafting starts (`SYSTEM_DESIGN.md` §5, `DATA_MODEL_DIAGRAMS.md` §2). The
+  RQ job ends here; state lives in `jobs.checkpoint`. Not a failure or a stall.
+- **Validator** — deterministic structural checks only, asserting the traceability
+  chain above. Never an LLM-as-judge.
 - **Export** — `docxtpl` against real TESDA template files.
 
 **The retry edge is the architecture's centerpiece.** Validator → back to the specific
@@ -96,13 +119,21 @@ Two rules:
 
 ## 5. Persistence
 
-Full schema in `SYSTEM_DESIGN.md` §3. The tables and why each exists:
+Full schema in `SYSTEM_DESIGN.md` §3 and `DATA_MODEL_DIAGRAMS.md` §1. The tables and why
+each exists:
 
 - `projects` — document-set container. Multiple projects, no versioning.
-- `tr_uploads` — storage path + `parsed_json` parse cache.
-- `corpus_chunks` — RAG corpus metadata, **global not per-project**; vectors live in
-  Pinecone keyed by `pinecone_id`, filterable by `section_type`.
-- `jobs` — one row per generation run.
+- `source_uploads` — storage path + `role` (`tr` | `cbc` | `reference`) for each
+  uploaded file. Two required uploads per project (TR + Enhanced CBC).
+- `parsed_structures` — one row per project holding the parsed TR/CBC `structure`
+  (JSONB) plus any `unmatched` elements the parse couldn't join.
+- `jobs` — one row per run, `kind` = `parse` | `generate`. A parse job ends at
+  `parsed_structures`; a generate job starts after UC + LO selection.
+- `session_plans` — one row per LO's drafted Session Plan, with `approved_at` marking
+  the review-interrupt resume point.
+- `corpus_chunks` — RAG corpus metadata, retained as **insurance only** and unused by
+  default (the MVP retriever is few-shot, no vector store); vectors would live in
+  Pinecone keyed by `vector_id`, filterable by `section_type`.
 - `job_events` — per-node trace (node, LO, started/succeeded/failed/retried, detail).
   Normalized on purpose: it is simultaneously the UI progress feed, the debugging log,
   and the capstone's evidence that the orchestration is real. A `jobs.progress` blob
@@ -144,7 +175,9 @@ require crossing one should be flagged rather than implemented (`CLAUDE.md`):
 
 - LLM calls inside FastAPI request handlers.
 - Flat-text TR extraction replacing table-aware extraction.
-- The CBC Formatter becoming an LLM agent.
+- The CBC Module becoming a generated artifact instead of a required upload.
+- Style being supplied by exemplar retrieval instead of the deterministic Style
+  Specification Matrix + house rules.
 - TRs entering the retrieval corpus.
 - An LLM-as-judge replacing deterministic validation.
 - The graph collapsing into a linear chain — losing the conditional retry edge.
