@@ -50,6 +50,9 @@ exemplar RAG. See `CBC_DOMAIN_RULES.md` for the domain rules and `PLAN.md` §1 f
 - [ ] CBC: format guard — reject anything that is not `.docx`.
 - [ ] Parse TR tables with `pdfplumber.extract_tables()`; repair whitespace.
 - [ ] Structure TR rows into Pydantic models (LLM), parsed **in full**.
+- [ ] Cache TR structuring output in Redis, keyed by uploaded-file hash — skip
+      `pdfplumber` extraction and the LLM call on a repeat upload (capstone rubric:
+      caching concept, see `PLAN.md` §1).
 - [ ] Parse CBC with `python-docx` — deterministic, no LLM.
 - [ ] Implement `align_sources`: TR *Element* ↔ CBC *Learning Outcome*.
 - [ ] Surface unmatched pairs for human confirmation; never guess.
@@ -77,6 +80,9 @@ exemplar RAG. See `CBC_DOMAIN_RULES.md` for the domain rules and `PLAN.md` §1 f
 - [ ] Add the validator node (numbering integrity, traceability, Style Spec §8 for CBLM).
 - [ ] Add bounded retry logic for validation failures.
 - [ ] Add per-node job event writes.
+- [ ] Add `GET /jobs/{id}/report`: LO/Assessment-Criterion coverage + validator
+      pass/fail detail, read from validator output and `job_events` (capstone rubric:
+      reporting concept, see `PLAN.md` §1).
 - [ ] Confirm partial success continues the job.
 - [ ] Pace LLM calls against the free-tier limit — a topology decision, not a tuning knob.
 
@@ -101,6 +107,8 @@ exemplar RAG. See `CBC_DOMAIN_RULES.md` for the domain rules and `PLAN.md` §1 f
       `awaiting_review` state (not the deprecated `every=` param).
 - [ ] Add Session Plan review/edit + resume as a `gr.Group(visible=...)` step
       that appears on `awaiting_review` and POSTs to `/jobs/{id}/resume`.
+- [ ] Surface `GET /jobs/{id}/report` (coverage + validation summary) in the
+      job-status view.
 - [ ] Add download links (`gr.DownloadButton`).
 - [ ] Keep the UI minimal and secondary to the backend.
 - [ ] `frontend/` (Next.js) stays in the repo, frozen — no further work goes
@@ -115,6 +123,8 @@ exemplar RAG. See `CBC_DOMAIN_RULES.md` for the domain rules and `PLAN.md` §1 f
 - [ ] The export matches the TESDA template.
 - [ ] Generated documents carry the AI-assistance disclosure.
 - [ ] The UI can start a job, review a plan, resume, and download output.
+- [ ] Rubric check: 5 of {API, database, background jobs, LLM integration,
+      caching, reporting} are implemented and demoable (`PLAN.md` §1).
 
 ## First three moves
 

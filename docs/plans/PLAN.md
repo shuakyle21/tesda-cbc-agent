@@ -14,6 +14,15 @@ timelines are how projects don't finish. Countermeasures are built into the mile
 below — each one is independently demo-able, and a "minimum submittable artifact" line
 is defined so scope has a floor to stop drifting at.
 
+**Rubric constraint (added 2026-08-21):** the capstone brief requires implementing at
+least 5 of {API endpoints, database, authentication, background/cron jobs, reporting,
+caching, LLM integration}, with up to 2 swappable for other concepts learned. As
+originally scoped this plan hit 4 (API, database, background jobs, LLM) and explicitly
+excluded auth by design (single-user MVP — reversing that would fight the actual
+product need). Caching and reporting are added below to reach 5 without reopening the
+auth decision — both slot into work already planned rather than adding new surface
+area.
+
 ---
 
 ## 1. Scope decisions (locked)
@@ -43,6 +52,8 @@ is defined so scope has a floor to stop drifting at.
 | Auth | **None for MVP.** Supabase used only for Postgres + file storage | Google OAuth was scoped for a multi-trainer product; with a single-user minimal UI it's pure overhead. Revisit post-MVP if this becomes a real product |
 | Document management | `projects` table (multiple saved document-sets) kept in schema | Nearly free to include now; no versioning |
 | Output validation | Basic structural checks (required sections present, no empty placeholders, LO count matches TR) — deterministic, not another LLM call | |
+| Caching | **Redis-backed cache on TR structuring**, keyed by uploaded-file hash — re-parsing an identical TR skips both `pdfplumber` extraction and the LLM structuring call | ADDED 2026-08-21 for rubric coverage. Reuses the Redis instance already provisioned for RQ (`docs/todos/BUILD_CHECKLIST.md` §5) — no new infra. Genuinely useful too: a trainer re-uploading the same TR across projects shouldn't re-spend free-tier LLM budget |
+| Reporting | **Per-job traceability/validation report** (`GET /jobs/{id}/report`): LO/Assessment-Criterion coverage, validator pass/fail detail, surfaced in the Gradio job-status view | ADDED 2026-08-21 for rubric coverage. Restates data the Validator node and `job_events` already produce (§4, §5 pipeline) as a structured report rather than raw event rows — no new domain logic, just a read model over existing state |
 | Deployment | None yet — local dev only | Decide hosting after the pipeline works |
 | Repo | `~/tesda-cbc-agent`, separate from `web_portfolio` | Unrelated project |
 
