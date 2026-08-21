@@ -89,15 +89,22 @@ exemplar RAG. See `CBC_DOMAIN_RULES.md` for the domain rules and `PLAN.md` §1 f
 - [ ] Store generated files; add download endpoints.
 - [ ] Verify one competency exports cleanly.
 
-## 7. Minimal UI
+## 7. Minimal UI (Gradio, replaces the Next.js prototype — see `PLAN.md` §1 Frontend row)
 
+- [ ] Scaffold a `gradio_ui/` app as its own process (`gr.Blocks`), pointed at
+      `API_BASE_URL`. Do not mount into the FastAPI app (`mount_gradio_app`
+      has known queue/websocket breakage — gradio-app/gradio#2292, #8839).
 - [ ] Add project creation/opening.
-- [ ] Add source upload for both roles.
+- [ ] Add source upload for both roles (`gr.File` × 2: TR `.pdf`, CBC `.docx`).
 - [ ] Add the UC / Learning Outcome dropdown from `GET /structure`.
-- [ ] Add job progress polling, including the `awaiting_review` state.
-- [ ] Add Session Plan review/edit + resume.
-- [ ] Add download links.
+- [ ] Add job progress polling with `gr.Timer` against job-status, including the
+      `awaiting_review` state (not the deprecated `every=` param).
+- [ ] Add Session Plan review/edit + resume as a `gr.Group(visible=...)` step
+      that appears on `awaiting_review` and POSTs to `/jobs/{id}/resume`.
+- [ ] Add download links (`gr.DownloadButton`).
 - [ ] Keep the UI minimal and secondary to the backend.
+- [ ] `frontend/` (Next.js) stays in the repo, frozen — no further work goes
+      into it; do not delete.
 
 ## 8. Done criteria
 

@@ -49,7 +49,7 @@ in Word. This tool accelerates a workflow they are already accountable for; it d
 | Embeddings | **SentenceTransformers, running locally** | Free, no API key, no rate limit — see "Budget constraint" |
 | LLM | **Groq** free tier (OpenAI-compatible endpoint) | Free, no card required |
 | Export | **docxtpl** against real TESDA `.docx` templates | Trainer finishes in Word; no in-app editor |
-| Frontend | **Next.js + React + Tailwind v4**, four screens | Design system already exists — see "UI" |
+| Frontend | **Gradio**, separate process calling FastAPI over HTTP | REVERSED 2026-08-21 — backend-first capstone, cut UI scaffolding. Superseded the Next.js + React + Tailwind v4 plan; see `PLAN.md` §1 Frontend row |
 | Auth | **None.** Single-user MVP | |
 | Deployment | Local only for now | |
 
