@@ -75,7 +75,7 @@ Note FastAPI never touches the LLM — all AI work is inside the RQ worker.
 sequenceDiagram
     autonumber
     actor T as Trainer
-    participant UI as Next.js UI<br/>(React client)
+    participant UI as Gradio UI<br/>(separate process)
     participant API as FastAPI
     participant R as Redis (RQ)
     participant W as RQ Worker<br/>(LangGraph)

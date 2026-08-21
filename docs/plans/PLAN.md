@@ -14,6 +14,15 @@ timelines are how projects don't finish. Countermeasures are built into the mile
 below — each one is independently demo-able, and a "minimum submittable artifact" line
 is defined so scope has a floor to stop drifting at.
 
+**Rubric constraint (added 2026-08-21):** the capstone brief requires implementing at
+least 5 of {API endpoints, database, authentication, background/cron jobs, reporting,
+caching, LLM integration}, with up to 2 swappable for other concepts learned. As
+originally scoped this plan hit 4 (API, database, background jobs, LLM) and explicitly
+excluded auth by design (single-user MVP — reversing that would fight the actual
+product need). Caching and reporting are added below to reach 5 without reopening the
+auth decision — both slot into work already planned rather than adding new surface
+area.
+
 ---
 
 ## 1. Scope decisions (locked)
@@ -39,10 +48,12 @@ is defined so scope has a floor to stop drifting at.
 | Agent orchestration | **LangGraph** | Purpose-built for a graph of agent nodes with explicit state and conditional branching — this *is* the graded artifact |
 | Job execution | RQ + Redis (background job, not synchronous request) | Multi-minute multi-LLM-call jobs need async execution + progress visibility, not a spinner on one HTTP request |
 | Backend | FastAPI, Python, sole API surface | |
-| Frontend | **Minimal Next.js UI**: one upload form, one job-status view, one download link | Full trainer product (dashboard, multi-project management) demonstrates nothing on a backend-AI rubric — cut until after the capstone is submitted |
+| Frontend | **Minimal Gradio UI**, separate process, calls FastAPI over HTTP: two file uploads, submit, `gr.Timer`-polled job-status view (incl. `awaiting_review`), UC/LO selection + Session Plan review as a conditionally-visible step, one download link | REVERSED 2026-08-21. Backend-first capstone — a Python UI cuts scaffolding versus Next.js with no HTTP client wired in yet. Deploy as its own service hitting FastAPI's public URL, not `mount_gradio_app`: mounting has known queue/websocket breakage (gradio-app/gradio#2292, #8839) and couples two deployment lifecycles for no benefit. The Next.js app (`frontend/`) is frozen in place, not deleted — no further work goes into it |
 | Auth | **None for MVP.** Supabase used only for Postgres + file storage | Google OAuth was scoped for a multi-trainer product; with a single-user minimal UI it's pure overhead. Revisit post-MVP if this becomes a real product |
 | Document management | `projects` table (multiple saved document-sets) kept in schema | Nearly free to include now; no versioning |
 | Output validation | Basic structural checks (required sections present, no empty placeholders, LO count matches TR) — deterministic, not another LLM call | |
+| Caching | **Redis-backed cache on TR structuring**, keyed by uploaded-file hash — re-parsing an identical TR skips both `pdfplumber` extraction and the LLM structuring call | ADDED 2026-08-21 for rubric coverage. Reuses the Redis instance already provisioned for RQ (`docs/todos/BUILD_CHECKLIST.md` §5) — no new infra. Genuinely useful too: a trainer re-uploading the same TR across projects shouldn't re-spend free-tier LLM budget |
+| Reporting | **Per-job traceability/validation report** (`GET /jobs/{id}/report`): LO/Assessment-Criterion coverage, validator pass/fail detail, surfaced in the Gradio job-status view | ADDED 2026-08-21 for rubric coverage. Restates data the Validator node and `job_events` already produce (§4, §5 pipeline) as a structured report rather than raw event rows — no new domain logic, just a read model over existing state |
 | Deployment | None yet — local dev only | Decide hosting after the pipeline works |
 | Repo | `~/tesda-cbc-agent`, separate from `web_portfolio` | Unrelated project |
 

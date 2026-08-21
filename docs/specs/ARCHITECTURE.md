@@ -15,7 +15,7 @@ decisions this architecture is downstream of.
 ## 1. Shape
 
 ```
-Next.js (minimal UI)  ──▶  FastAPI  ──enqueue──▶  Redis (RQ)
+Gradio (minimal UI)  ──▶  FastAPI  ──enqueue──▶  Redis (RQ)
         ▲                     │                       │
         └── status/download ──┘                       ▼
                                                   RQ worker
@@ -42,7 +42,7 @@ change would put an LLM call behind an HTTP handler, that change is wrong.
 
 | Component | Responsibility | Explicitly not responsible for |
 |---|---|---|
-| **Next.js UI** | Upload form (TR + Enhanced CBC), job-status view, download links | Any product surface beyond those three things |
+| **Gradio UI** | Upload form (TR + Enhanced CBC), job-status view (`gr.Timer` polling), download links; own process, calls FastAPI over HTTP | Any product surface beyond those three things; being mounted into the FastAPI app |
 | **FastAPI** | Sole API surface; upload + fail-fast text-layer check; enqueue; status; signed downloads | LLM calls, generation logic, orchestration |
 | **Redis / RQ** | Job queue and worker lifecycle | Application state (that lives in Postgres) |
 | **LangGraph graph** | The agent workflow — nodes, explicit state, conditional branching | Being simplified into a linear chain; generating the CBC Module |

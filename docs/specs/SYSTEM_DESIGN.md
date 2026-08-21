@@ -44,7 +44,7 @@ grilling session, it's marked **(assumption)** — flag if you'd choose differen
 ### Constraints
 - Solo build, no fixed deadline (see `PLAN.md` §"Deadline" for why that's treated as a risk).
 - Stack fixed by `PLAN.md`: FastAPI + LangGraph + RQ/Redis + Supabase (Postgres +
-  Storage) + Next.js (minimal UI) + free-tier Groq/OpenRouter. **Pinecone/embeddings cut
+  Storage) + Gradio (minimal UI, separate process) + free-tier Groq/OpenRouter. **Pinecone/embeddings cut
   from MVP** — retrieval sits behind `RetrieverProtocol` with a few-shot default.
 
 ---
@@ -53,10 +53,11 @@ grilling session, it's marked **(assumption)** — flag if you'd choose differen
 
 ```
 ┌────────────┐   upload TR (.pdf) + CBC (.docx)   ┌──────────────┐
-│  Next.js   │ ─────────────────────────────────▶ │   FastAPI    │
+│   Gradio   │ ─────────────────────────────────▶ │   FastAPI    │
 │ (minimal   │                                     │  (sole API   │
-│  UI)       │ ◀───────────────────────────────── │   surface)   │
-└────────────┘   status / review / download        └──────┬───────┘
+│  UI, own   │ ◀───────────────────────────────── │   surface)   │
+│  process)  │   status / review / download        └──────┬───────┘
+└────────────┘                                             │
        ▲                                                   │ enqueue
        │  awaiting_review                                  ▼
        │  ──────────────▶ trainer edits            ┌──────────────┐
