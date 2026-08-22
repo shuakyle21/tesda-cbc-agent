@@ -118,24 +118,27 @@ A topics-⊆-TR check would fail correct output.
 
 ## 3. Pipeline order
 
-**SUPERSEDED 2026-08-18.** The authoring chain is `TR → ENHANCED CBC → SESSION PLAN →
-CBLM`, but **this system does not build the first arrow.** The Enhanced CBC is supplied
-by the human, not generated.
+**SUPERSEDED 2026-08-18, then again 2026-08-22.** The authoring chain is
+`TR → ENHANCED CBC → SESSION PLAN → CBLM`, but this system builds neither the first arrow
+nor the third: the Enhanced CBC and the Session Plan are both supplied/authored by the
+human, not generated. **CBLM is this system's only generated output.**
 
 ```
 INPUTS (both required)          SELECTION            GENERATED
 ┌──────────────────┐
 │  TR (PDF)        │──┐      ┌──────────────┐      ┌───────────────┐
-├──────────────────┤  ├─parse─▶│ pick UC      │──────▶│ Session Plan  │
-│  Enhanced CBC    │──┘      │ pick LO(s)   │      ├───────────────┤
-└──────────────────┘         └──────────────┘      │ CBLM          │
-                              (human-in-loop)      └───────────────┘
+├──────────────────┤  ├─parse─▶│ pick UC      │──────▶│ CBLM          │
+│  Enhanced CBC    │──┘      │ pick LO(s)   │      └───────────────┘
+└──────────────────┘         └──────────────┘
+                              (human-in-loop)
 ```
 
 - **Both TR and Enhanced CBC are required uploads.** No CBC-generation node exists.
 - After parsing, the user selects a **Unit of Competency**, then **Learning Outcome(s)**,
   from a dropdown built out of the parsed structure.
-- **Session Plan and CBLM are separate outputs.** CBLM is the primary deliverable.
+- **Session Plan is not generated — it's a trainer-authored artifact outside this
+  system.** A sample copy is kept at `reference/SAMPLE-session-plan.pdf` purely as a
+  structural reference for CBLM's topic numbering (§9) — it is not a pipeline input.
 
 ### Vocabulary bridge (load-bearing)
 
@@ -254,9 +257,20 @@ source.
 
 ---
 
-## 9. Session Plan matrix — actual column structure
+## 9. Topic numbering — derived from the sample Session Plan
 
-Observed from a real Session Plan (OAP NC II, LO1: Establish Nursery, 5 hours):
+Source: `reference/SAMPLE-session-plan.pdf` (OAP NC II, LO1: Establish Nursery, 5 hours).
+Kept in the repo purely as a structural exemplar for the numbering convention below —
+not parsed at runtime; Session Plan is not a pipeline input (§3).
+
+**Topics themselves are not derived here.** Per §2's field mapping, topics/contents come
+from the CBC's own Topics/Contents field (sourced from TR Required Knowledge, already
+authored in the uploaded Enhanced CBC) and subtopics from its Range of Variables entries
+— both extracted by `parse_cbc` (no LLM) at parse time, not invented by `draft_cblm` from
+raw assessment criteria. What this section documents is only how the **sample numbers and
+schedules** those pre-existing topics, which `draft_cblm` must reproduce.
+
+Observed column structure from the sample:
 
 | Learning Content | Methods | Presentation | Practice | Feedback | Resources | Time |
 |---|---|---|---|---|---|---|
@@ -277,14 +291,20 @@ Observed from a real Session Plan (OAP NC II, LO1: Establish Nursery, 5 hours):
 - **Time** is per topic (`1 hour`), summing to the LO's total hours (`5 hours`).
 
 **Numbering is load-bearing and cross-referential:** topic `1.1.1` binds Information
-Sheet 1.1.1, Self-Check 1.1.1, and Answer Key 1.1.1. The Session Plan therefore
-*determines* which CBLM artifacts must exist. Note the source document is internally
-inconsistent (`Self-Check 1.1-1` vs `Self-Check 1.1.1`) — pick one convention and
-enforce it deterministically.
+Sheet 1.1.1, Self-Check 1.1.1, and Answer Key 1.1.1 — this is what `draft_cblm` must
+reproduce without a Session Plan to derive it from. The sample document is internally
+inconsistent (`Self-Check 1.1-1` vs `Self-Check 1.1.1`); **canonical form is `1.1.1`**
+(dot-separated, matches the Information-Sheet/topic binding) — `apply_house_rules`
+enforces this deterministically, no LLM judgment involved.
 
-### Number of Information Sheets is a human decision
+### Number of Information Sheets per topic: default to one
 
-Per the project owner: how many Information Sheets a topic gets depends on how many
-contents the **trainer** decides on, so long as they remain reflected in the Session
-Plan. The AI's job is **not** to decide the count — it is to generate content matching
-this Style Specification Matrix for whatever contents are given.
+The sample's "however many contents the trainer decides on" escape hatch had somewhere to
+live — the Session Plan the trainer edited at the review interrupt. That interrupt is now
+earlier in the pipeline (§3) and reviews TR↔CBC alignment, not a per-topic content count,
+so there's no longer a place to record a variable count mid-run. **Default: one
+Information Sheet per topic**, per §5's existing rule — this is a deliberate
+simplification from cutting Session Plan generation, not a rediscovery of the original
+rule. If a trainer needs more than one Information Sheet for a topic, that's a CBC-editing
+decision (split the topic before upload), not something `draft_cblm` decides at generation
+time.

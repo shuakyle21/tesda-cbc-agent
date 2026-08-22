@@ -149,10 +149,9 @@ of sync with the code.**
   CBC-generation node's compounding-error chain and the `draft_session_plan` node. The
   TR is parsed in full and is the grounding authority; the CBC drives per-LO generation.
   Everything generated must still trace to an Assessment Criterion. See
-  `docs/specs/CBC_DOMAIN_RULES.md`. **Open gap:** CBLM topic/section numbering used to
-  come from the trainer-approved Session Plan; `draft_cblm` now has to derive its own
-  topic breakdown from the CBC's assessment criteria — resolve this against
-  `CBC_DOMAIN_RULES.md`'s numbering rules during implementation, don't guess it.
+  `docs/specs/CBC_DOMAIN_RULES.md`. CBLM topics come from the CBC's own Topics/Contents
+  field (`parse_cbc`, no LLM), numbered `1.1.1`-style per `CBC_DOMAIN_RULES.md` §9, which
+  also sets one Information Sheet per topic as the default — resolved 2026-08-22.
 - Grounding: **TR-grounded traceability, not exemplar RAG** (locked 2026-08-18). Style
   is supplied deterministically by the 2026 Style Specification Matrix + Caravan house
   rules (`docs/specs/CBC_DOMAIN_RULES.md` §1, §8), which displaced retrieval's original

@@ -137,12 +137,12 @@ class PipelineState(BaseModel):
                         "drafting_cblm","validating","exporting","done","failed"]
 ```
 
-**Open gap this reversal creates:** `TopicRow.number` used to come from the trainer-approved
-Session Plan — CBLM's Task/Job/Operation Sheet, Self-Check, and Answer Key all number off
-the Session Plan's topic rows. With Session Plan removed, `draft_cblm` has to derive its
-own topic breakdown from `assessment_criteria` before it can number anything. This is a
-real domain-modeling question, not a stub — resolve it against `CBC_DOMAIN_RULES.md`'s
-numbering rules during M4 below, not by guessing here.
+**Resolved 2026-08-22:** `topics` are not invented by `draft_cblm` — they come from the
+CBC's own Topics/Contents field (extracted by `parse_cbc`, no LLM), the same source they
+came from before Session Plan removal, since the Session Plan only renumbered pre-existing
+CBC topics rather than authoring them. `TopicRow.number` is assigned deterministically per
+`CBC_DOMAIN_RULES.md` §9's `X.Y.Z` convention (canonical form `1.1.1`), which also sets the
+default of one Information Sheet per topic. See that section for the full rationale.
 
 ---
 
@@ -211,11 +211,11 @@ the first thing to cut if time runs out.
 - Confirm whether the capstone rubric names RAG explicitly. Handled by a two-implementation
   retriever either way, but confirm **before M7** — seeding a corpus late is cheap;
   discovering the requirement on submission day is not.
-- Topic-breakdown source (new, from the Session Plan reversal): `draft_cblm` must derive
-  its own topic list from `assessment_criteria` — decide the derivation rule (one topic
-  per assessment criterion? grouped?) and the numbering convention (`Self-Check 1.1-1` vs
-  `1.1.1` — the old reference Session Plan was internally inconsistent) during M4, checked
-  against `CBC_DOMAIN_RULES.md`.
+- ~~Topic-breakdown source~~ — resolved, see §2 above and `CBC_DOMAIN_RULES.md` §9:
+  topics come from the CBC's own Topics/Contents field, numbering is `1.1.1` canonical.
+  Remaining: confirm the transcription in `CBC_DOMAIN_RULES.md` §9 against the actual
+  `reference/SAMPLE-session-plan.pdf` once it's added — it's currently sourced from
+  hand-transcribed notes, not the file itself.
 - Rate-limit pacing is a **graph topology** decision (sequence drafters or semaphore), not
   a tuning knob — decide it when building the graph, not after.
 
