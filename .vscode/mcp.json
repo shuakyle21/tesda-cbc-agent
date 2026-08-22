@@ -1,21 +1,24 @@
 {
-  "servers": {
-    "todiagram": {
-      "type": "stdio",
-      "command": "npx",
-      "args": ["-y", "@todiagram/todiagram-mcp@latest"],
-      "env": {
-        "TODIAGRAM_API_KEY": "147eb33e-b64e-4fdf-8f55-5596024279fb"
-      }
-    },
-    "memory_palace": {
-      "command": "node",
-      "args": [
-        "/Users/gabz_1/.nvm/versions/node/v22.22.0/lib/node_modules/mempalace/dist/index.js",
-        "mcp"
-      ]
-    }
-  },
-
-  "inputs": []
+	"servers": {
+		"todiagram": {
+			"type": "stdio",
+			"command": "npx",
+			"args": [
+				"-y",
+				"@todiagram/todiagram-mcp@latest"
+			],
+			"env": {
+				"TODIAGRAM_API_KEY": "bca1bff1-7ed1-46c8-bfc3-d1fd5868c86a"
+			}
+		},
+		"memory_palace": {
+			"command": "node",
+			"args": [
+				"/Users/gabz_1/.nvm/versions/node/v22.22.0/lib/node_modules/mempalace/dist/index.js",
+				"mcp"
+			],
+			"type": "stdio"
+		}
+	},
+	"inputs": []
 }

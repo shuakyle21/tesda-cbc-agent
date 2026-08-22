@@ -5,7 +5,7 @@
       "command": "npx",
       "args": ["-y", "@todiagram/todiagram-mcp@latest"],
       "env": {
-        "TODIAGRAM_API_KEY": "${TODIAGRAM_API_KEY}"
+        "TODIAGRAM_API_KEY": "bca1bff1-7ed1-46c8-bfc3-d1fd5868c86a"
       }
     }
   }
