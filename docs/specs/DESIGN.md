@@ -38,19 +38,22 @@ day-count urgency tiers).
 
 ## 1. Product context
 
-A trainer uploads an official TESDA Training Regulation (TR) PDF. A LangGraph pipeline —
-Parser → Retriever → Drafters → Validator (with a bounded retry edge) → Export — generates
-one competency's worth of documents and exports them as `.docx` against real TESDA templates.
+A trainer uploads a TR PDF, an Enhanced CBC `.docx`, and a Session Plan PDF — all three
+required. A LangGraph pipeline — Parsers → `align_sources` → *(review + select
+interrupt)* → CBLM Drafter → Validator (with a bounded retry edge) → Export — generates
+one competency's worth of CBLM documents and exports them as `.docx` against real TESDA
+templates. Neither the CBC nor the Session Plan is generated; CBLM is the only output.
 
-A single run produces **26 documents**: 1 CBC Module + 5 Session Plans (one per Learning
-Outcome) + 20 CBLM sections (4 per LO: Information Sheet, Task Sheet, Self-Check, Answer Key).
-A full run takes **low single-digit minutes** (`SYSTEM_DESIGN.md` §1).
+A single run produces **20 documents**: 4 CBLM sections per selected LO (Information
+Sheet, Task Sheet, Self-Check, Answer Key) × ~5 LOs — topic numbering comes from the
+uploaded Session Plan, not from generation. A full run takes **low single-digit minutes**
+(`SYSTEM_DESIGN.md` §1).
 
 The trainer is a **Word user, not a web-app power user** — `PLAN.md` §1 is explicit that
 final edits happen in Word, and the app is a generator, not an editor. There is no auth and
 no multi-user story in the MVP.
 
-**Scope honesty:** the UI is milestone M6 and `PLAN.md` §4 names it the first thing to cut.
+**Scope honesty:** the UI is milestone M7 and `PLAN.md` §4 names it the first thing to cut.
 This document exists so that whenever the UI *is* built, the hard decisions are already made.
 
 ---
@@ -68,7 +71,7 @@ Only a total failure of every section yields `failed` (`SYSTEM_DESIGN.md` §5;
 
 **Consequence:** the run outcome banner is derived from the **documents list**, never from
 `jobs.status` alone. **There is no green "Done" state reachable without first checking
-whether any document is `failed_after_retries`.** A green checkmark over 24 of 26 documents
+whether any document is `failed_after_retries`.** A green checkmark over 18 of 20 documents
 is a lie the trainer discovers in Word, three days later.
 
 ### Truth 2 — progress goes backwards
@@ -105,8 +108,8 @@ sees is the Layer 2 validation retry, which is a different thing and is meaningf
 once per LO.
 
 **Consequence:** collapsing on `node_name` alone makes LO-2's retry overwrite LO-1's success.
-The correct collapse yields ~19–24 rows: parser 1 + retriever 1 + cbc_formatter 1 +
-session_plan_drafter ×5 + cblm_drafter ×5 + validator ×5 + export 1.
+The correct collapse yields ~20 rows: parse_tr 1 + parse_cbc 1 + parse_session_plan 1 +
+align_sources 1 + cblm_drafter ×5 + apply_house_rules ×5 + validator ×5 + export 1.
 
 > Note: `job_events` has **no `section_type` column**. CBLM drafting collapses to one row per
 > LO, not one per section. Do not design a row per CBLM section — the data does not exist.
@@ -123,17 +126,19 @@ whoever can fix it.
 
 ### Truth 7 — there is no per-section retry
 
-The only retry API is whole-job `POST /projects/{id}/generate`. `SYSTEM_DESIGN.md` §5 is
-explicit that the whole job is not auto-retried and the user re-triggers manually.
+The only retry API is whole-job re-trigger — `POST /projects/{id}/parse` for a fresh run
+(there is no `/generate` endpoint any more; `SYSTEM_DESIGN.md` §4). `SYSTEM_DESIGN.md` §5
+is explicit that the whole job is not auto-retried and the user re-triggers manually.
 
 **Consequence:** a per-row, per-LO, or per-section "retry" control **would be a lie**. This is
 an explicit anti-pattern. There is exactly one re-run control per run, and its confirmation
-copy says plainly that all 26 documents are regenerated.
+copy says plainly that all 20 documents are regenerated.
 
 ### Truth 8 — upload rejection is synchronous and inline
 
-`POST /projects/{id}/tr` runs a cheap text-layer check in the request and returns
-`400 {error: "no text layer detected"}` (`SYSTEM_DESIGN.md` §4, `TECHNICAL_DIAGRAMS.md` §2).
+`POST /projects/{id}/sources` runs a cheap format check in the request per source (TR
+text-layer, CBC `.docx`, Session Plan table structure) and returns
+`400 {error: "..."}` (`SYSTEM_DESIGN.md` §4, `TECHNICAL_DIAGRAMS.md` §2).
 
 **Consequence:** rejection renders **in place, inside the dropzone** — not as a toast, not on
 a separate screen. The file is not retained. The trainer's next action (pick a different file)
@@ -291,7 +296,7 @@ signal**, not decoration — it means "this is a value you might copy, compare, 
 - LO identifiers — `LO-1` … `LO-5`
 - Qualification codes — `BPP NC II`
 - Timestamps and durations — `14:02`, `4s`
-- Counts — `24 / 26`
+- Counts — `18 / 20`
 - Retry counters — `(1/2)`
 - The verbatim error block
 
@@ -342,9 +347,10 @@ screen.**
 
 | Value | Display | Color | Icon |
 |---|---|---|---|
-| `parsing` | Parsing the TR | Blue | `ti-file-search` |
-| `retrieving` | Finding exemplars | Blue | `ti-search` |
-| `drafting` | Drafting documents | Blue | `ti-pencil` |
+| `parsing` | Parsing TR, CBC, Session Plan | Blue | `ti-file-search` |
+| `aligning` | Aligning sources | Blue | `ti-arrows-join` |
+| `awaiting_review` | Waiting for your review | Blue | `ti-eye-check` |
+| `drafting_cblm` | Drafting CBLM sections | Blue | `ti-pencil` |
 | `validating` | Checking output | Blue | `ti-checkup-list` |
 | `exporting` | Building .docx files | Blue | `ti-file-export` |
 | `done` | **see Truth 1 — resolve against the documents list** | Green *or* Amber | `ti-check` / `ti-alert-triangle` |
@@ -354,11 +360,13 @@ screen.**
 
 | Value | Display name |
 |---|---|
-| `parser` | Parser |
-| `retriever` | Retriever |
-| `cbc_formatter` | CBC Module |
-| `session_plan_drafter` | Session Plan |
+| `parse_tr` | Parse TR |
+| `parse_cbc` | Parse CBC |
+| `parse_session_plan` | Parse Session Plan |
+| `align_sources` | Align Sources |
+| `retriever` | Retriever *(insurance path only, off by default)* |
 | `cblm_drafter` | CBLM Sections |
+| `apply_house_rules` | House Rules |
 | `validator` | Validator |
 | `export` | Export |
 
@@ -373,14 +381,12 @@ screen.**
 
 ### `generated_documents`
 
-| `doc_type` / `section_type` | Display name | Group |
+| `doc_type` | Display name | Group |
 |---|---|---|
-| `cbc_module` | CBC Module | Run-level |
-| `session_plan` | Session Plan | per LO |
-| `cblm_section` + `info_sheet` | Information Sheet | per LO |
-| `cblm_section` + `task_sheet` | Task Sheet | per LO |
-| `cblm_section` + `self_check` | Self-Check | per LO |
-| `cblm_section` + `answer_key` | Answer Key | per LO |
+| `info_sheet` | Information Sheet | per LO |
+| `task_sheet` | Task Sheet | per LO |
+| `self_check` | Self-Check | per LO |
+| `answer_key` | Answer Key | per LO |
 
 | `status` | Badge | Download link? |
 |---|---|---|
@@ -449,8 +455,8 @@ Renders collapsed `job_events` as the run trace. **This is what replaces the ste
   phrase (`text-sm` secondary) · right-aligned mono duration or retry counter.
   Row rhythm reuses CAMS Data Table Row: odd `surface`, even `surface-alt`, hover
   `surface-raised`. No shadow — alternating backgrounds do the work.
-- **Target string** (`SYSTEM_DESIGN.md` §3): *"Parser succeeded in 4s"*, *"Session Plan LO-2
-  failed validation, retrying (1/2)"*.
+- **Target string** (`SYSTEM_DESIGN.md` §3): *"Parse TR succeeded in 4s"*, *"CBLM LO-2 Info
+  Sheet failed validation, retrying (1/2)"*.
 - **Data rule.** Collapse to the latest row per `(node_name, lo_id)` (Truth 5). Order by
   **pipeline stage, then `lo_id` — never by `created_at`.** This is what makes non-monotonic
   progress feel calm: rows update in place instead of jumping when a retry lands.
@@ -475,9 +481,9 @@ Renders collapsed `job_events` as the run trace. **This is what replaces the ste
 The honest top-level "how far along" that does not lie about monotonicity.
 
 - **Anatomy.** Phase label (from the `jobs.status` map in §7) · 6px `radius-full` track ·
-  right-aligned mono `14 / 26 documents`.
+  right-aligned mono `14 / 20 documents`.
 - **The rule that matters:** the bar tracks **completed document count**, which never
-  decreases — even when the phase label moves `validating` → `drafting` (Truth 2).
+  decreases — even when the phase label moves `validating` → `drafting_cblm` (Truth 2).
   **The label may go backwards. The bar may not.**
 - **Color:** single blue while running → green when all `ok` → **amber if any
   `failed_after_retries`.** Deliberately *not* CAMS's percentage tiers.
@@ -506,8 +512,8 @@ Derivation — **from the documents list, not `jobs.status`** (Truth 1):
 | Condition | Variant | Content |
 |---|---|---|
 | `status === 'failed'` | **red** | "Run failed. No documents were generated." + N5 |
-| `status === 'done'` && any `failed_after_retries` | **amber** | "Completed with gaps — 24 of 26 documents generated." + one line per gap + a single N6 |
-| `status === 'done'` && all `ok` | **green** | "All 26 documents generated." |
+| `status === 'done'` && any `failed_after_retries` | **amber** | "Completed with gaps — 18 of 20 documents generated." + one line per gap + a single N6 |
+| `status === 'done'` && all `ok` | **green** | "All 20 documents generated." |
 
 - **Anatomy.** Info Callout geometry (1px full-perimeter tinted border, **no left accent**),
   `text-md` 500 heading, mono counts, gap list, action row.
@@ -534,7 +540,7 @@ One control, whole-job only (Truth 7).
 
 - 32px secondary button, "Re-run generation", `ti-refresh`.
 - Confirm dialog, 12px radius, focus-trapped, returns focus to the trigger on close:
-  > "This starts a completely new run — all 26 documents are regenerated, including the 24
+  > "This starts a completely new run — all 20 documents are regenerated, including the 18
   > that succeeded. There is no way to retry just the failed sections."
 - **Disabled** while any job for the project is non-terminal, with an explanatory tooltip.
 - **Documented anti-pattern:** no per-row, per-LO, or per-section retry affordance anywhere.
@@ -561,9 +567,9 @@ Truths 8 and 9.
 
 #### N8 — LO Group Header *(recommended)*
 
-Accordion header for the 1 + 5×5 results grouping. 26 flat rows is a poor layout.
+Accordion header for the 5×4 results grouping. 20 flat rows is a poor layout.
 
-- **Anatomy.** `LO-2` mono chip · LO title (`text-md` 500) · mono `5 / 5` count · aggregate
+- **Anatomy.** `LO-2` mono chip · LO title (`text-md` 500) · mono `4 / 4` count · aggregate
   Status Badge (`ok` if all ok, `partial` if any failed) · chevron.
 - **States:** collapsed · expanded · all-ok · partial.
 
@@ -588,9 +594,9 @@ route count down and returns the trainer to the list with the new project in pla
 
 ### `/projects/[id]` — Upload & Generate
 
-Project header · **N7** dropzone → `POST /projects/{id}/tr` · competency selector
-(`competency_index?`) · budget-rejection callout · "Generate documents" primary button →
-`POST /projects/{id}/generate` → redirect to the run. Prior runs listed below.
+Project header · **N7** dropzone (×3 for TR/CBC/Session Plan) → `POST /projects/{id}/sources`
+· competency selector (`competency_index?`) · budget-rejection callout · "Parse & review"
+primary button → `POST /projects/{id}/parse` → redirect to the run. Prior runs listed below.
 **States:** `no-upload` · `validating` · `rejected` · `uploaded` · `budget-rejected` ·
 `generating`.
 
@@ -607,8 +613,8 @@ Polls `GET /jobs/{job_id}` every **2 s** while status is non-terminal; **stops o
 
 **N4** banner · then **grouped by run** (see §12 — the endpoint has no job filter, so a
 re-run doubles the list), latest run expanded and prior runs collapsed as "superseded" ·
-within a run: CBC Module (1) then **N8** LO-1…LO-5 accordions (5 each) of **Document Result
-Rows**. Tab Bar filter optional and probably redundant once grouped.
+within a run: **N8** LO-1…LO-5 accordions (4 each) of **Document Result Rows**. Tab Bar
+filter optional and probably redundant once grouped.
 **States:** `loading` · `all-ok` · `partial` · `empty` (job still running).
 
 > Progress and Results stay **separate routes**. Progress is live and ephemeral; results are
@@ -637,7 +643,7 @@ Exact strings, owned centrally so a generator does not invent phrasing.
 - >90 s: "Still working. This run is taking longer than usual."
 
 **Outcome banner**
-- Clean: "All 26 documents generated."
+- Clean: "All 20 documents generated."
 - Partial: "Completed with gaps — {ok} of {total} documents generated."
 - Partial sub: "The sections below could not be generated. Re-running regenerates everything,
   including the {ok} that succeeded."
@@ -650,7 +656,7 @@ Exact strings, owned centrally so a generator does not invent phrasing.
 
 **Re-run confirm**
 - Title: "Re-run generation?"
-- Body: "This starts a completely new run — all 26 documents are regenerated, including the
+- Body: "This starts a completely new run — all 20 documents are regenerated, including the
   {ok} that succeeded. There is no way to retry just the failed sections."
 - Actions: "Re-run" / "Cancel"
 
@@ -658,8 +664,8 @@ Exact strings, owned centrally so a generator does not invent phrasing.
 - "Not generated — validation failed after 2 retries"
 
 **Empty states**
-- Projects: "No projects yet" / "Create a project, then upload a TESDA Training Regulation
-  PDF to generate its CBC documents."
+- Projects: "No projects yet" / "Create a project, then upload a TR, an Enhanced CBC, and a
+  Session Plan to generate its CBLM documents."
 - Documents (running): "Documents will appear here as the run completes."
 - Documents (never run): "No documents yet" / "Upload a TR PDF and run generation."
 - Prior runs: "This is the first run for this project."
@@ -738,8 +744,13 @@ Tab order follows visual reading order. Every interactive element is keyboard re
 `SYSTEM_DESIGN.md` §4 defines `GET /jobs/{job_id}` returning JSON. `TECHNICAL_DIAGRAMS.md`
 §2/§9 briefly described an HTMX UI polling a `GET /jobs/{job_id}/status` HTML fragment — that
 endpoint does not exist in §4, and the HTMX approach was reversed in favour of React/Next.js.
-**Assumed:** a React client polls `GET /jobs/{job_id}` every 2 s while non-terminal.
-`TECHNICAL_DIAGRAMS.md` has been corrected to match.
+**Assumed at the time this was written:** a React client polls `GET /jobs/{job_id}` every
+2 s while non-terminal. **No longer current** — the frontend was reversed to a minimal
+Gradio UI (`PLAN.md` §1 Frontend row, 2026-08-21); `TECHNICAL_DIAGRAMS.md` now shows
+`gr.Timer` polling instead. This document's component-system framing (React, the routes
+in §9, N1–N8) was not reconciled with that pivot and describes the frozen Next.js
+prototype's design system, not the active Gradio plan — see `CLAUDE.md`'s Frontend
+section for current status.
 
 ### Proposed backend additions — *not assumed*
 
@@ -767,7 +778,10 @@ in-app rich editor to build"). No versioning of generated document sets (`PLAN.m
 
 ### Scope note
 
-This document and its component library are **design artifacts only**. No Next.js scaffolding,
-API client, or polling hook should be built from them until M5 is complete. `PLAN.md` §4:
-"minimum submittable artifact = M5", and M6 is the first thing cut. What survives a cut is
-this file and the library — which is exactly why they were built first.
+This document and its component library are **design artifacts only**, and (per the
+Assumed-contract note above) were built for the since-abandoned Next.js plan — the active
+plan is a minimal Gradio UI. No Next.js scaffolding, API client, or polling hook should be
+built from them until M6 is complete, and even then only if the UI reverts to Next.js.
+`PLAN.md` §4: "minimum submittable artifact = M6", and M7 (the UI) is the first thing cut.
+What survives a cut is this file and the library — which is exactly why they were built
+first — as a historical record, per `CLAUDE.md`'s Frontend section.
