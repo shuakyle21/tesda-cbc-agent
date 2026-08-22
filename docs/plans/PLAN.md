@@ -1,7 +1,7 @@
 # tesda-cbc-agent — Project Plan
 
 **What this is:** A backend-first AI application that takes a TESDA Training Regulation
-(TR) PDF plus an Enhanced CBC `.docx` and generates a per-Learning-Outcome CBLM
+(TR) PDF plus an Enhanced CBC `.docx` and a Trainer's Session Plan and generates a per-Learning-Outcome CBLM
 (Competency-Based Learning Material) section-set, via an explicit multi-agent LangGraph
 pipeline. The TR, the CBC, and the Session Plan are all trainer-supplied/trainer-owned —
 CBLM is the only document the system generates.
