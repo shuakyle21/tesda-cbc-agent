@@ -7,7 +7,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
 
-
+# Class model for the Project table in the database
 class Project(Base):
     __tablename__ = "projects"
 

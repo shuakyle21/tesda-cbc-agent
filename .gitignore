@@ -12,6 +12,7 @@ venv/
 # Environment
 .env
 .env.local
+.mcp.json
 
 # Node (frontend)
 node_modules/
@@ -26,3 +27,6 @@ graphify-out/
 prototype/
 reference/
 ui_kits/
+
+#VSCode
+.vscode/

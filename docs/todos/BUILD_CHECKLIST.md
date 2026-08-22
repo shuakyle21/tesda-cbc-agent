@@ -35,18 +35,23 @@ See `CBC_DOMAIN_RULES.md` for the domain rules and `PLAN.md` §1 for scope.
       URI instead: `postgres.<project-ref>@aws-0-<region>.pooler.supabase.com:5432`).
       All 8 tables confirmed live via `pg_tables` query.
 
-**Schema follow-up from the 2026-08-22 reversal (CBLM-only, three uploads, one job).**
-The above is what's actually live — don't re-run or edit `0001_initial.py`. This needs a
-**new** migration on top of it, per `SYSTEM_DESIGN.md` §3:
-- [ ] Add `session_plan` to `source_uploads.role` (∈ `tr｜cbc｜session_plan｜reference`).
-- [ ] Drop `jobs.kind` — one job kind now, no more `parse｜generate` split
-      (`SYSTEM_DESIGN.md` §2).
-- [ ] Drop the `session_plans` table — Session Plan is parsed input, not an editable
-      artifact; its topic list lives in `parsed_structures.structure` instead.
-- [ ] Drop `'session_plan'` from `generated_documents.doc_type`; make `lo_id` `not null`
-      (every remaining `doc_type` is per-LO — `cbc_module` was already dead).
-- [ ] Drop `'session_plan'` and `'cbc_module'` from `corpus_chunks.section_type` (neither
-      is ever generated).
+### 1a. Project API contract (found via frontend/backend conflict audit, 2026-08-22)
+
+`GET /projects` is currently a hardcoded stub (`{"id": "1", "name": "Project 1"}`) that
+never touches the real `Project` model from §1. This is backend-only work — independent
+of which UI eventually calls it (Gradio, per §7's reversal), so it's not blocked on the
+Gradio scaffold.
+
+- [ ] Replace the `GET /projects` stub with a real query via `get_db` against the `Project`
+      model; add `ProjectOut`/`ProjectCreate` Pydantic schemas (`backend/app/schemas/project.py`).
+- [ ] Add `POST /projects {title, qualification_code?} → {id}` (see `docs/specs/SYSTEM_DESIGN.md` §4).
+- [ ] Add `CORSMiddleware` to `backend/app/main.py` for whichever origin `gradio_ui/`
+      runs on once it exists (its own process, not `mount_gradio_app` — see §7).
+- [ ] Add `backend/tests/test_projects.py`, extending the `test_health.py` pattern. Confirm
+      `DATABASE_URL` is a real value first — `db/session.py` builds the engine at import
+      time, so this can otherwise break `test_health.py` collection too.
+- [ ] Add `.claude/agents/api-contract-sync.md` (read-only: `Read, Grep, Glob, Bash`, no
+      `Write`/`Edit`) to flag future frontend/backend schema drift as `gradio_ui/` is built.
 
 ## 2. M0 smoke test
 
