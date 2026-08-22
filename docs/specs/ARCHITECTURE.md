@@ -29,9 +29,10 @@ Gradio (minimal UI)  ──▶  FastAPI  ──enqueue──▶  Redis (RQ)
                                                         RAG insurance)
 ```
 
-Both the TR PDF and the Enhanced CBC `.docx` are uploaded up front
-(`source_uploads.role` = `tr` | `cbc` | `reference`) — the CBC is a required input, not
-a pipeline output. See §3.
+All three of the TR PDF, the Enhanced CBC `.docx`, and the trainer's Session Plan (PDF)
+are uploaded up front (`source_uploads.role` = `tr` | `cbc` | `session_plan` |
+`reference`) — neither the CBC nor the Session Plan is a pipeline output; CBLM is the
+system's only generated output. See §3.
 
 **The load-bearing boundary: FastAPI never calls an LLM.** All AI work happens inside the
 worker process. The API's job is to accept uploads, enqueue work, and serve status and
@@ -42,59 +43,74 @@ change would put an LLM call behind an HTTP handler, that change is wrong.
 
 | Component | Responsibility | Explicitly not responsible for |
 |---|---|---|
-| **Gradio UI** | Upload form (TR + Enhanced CBC), job-status view (`gr.Timer` polling), download links; own process, calls FastAPI over HTTP | Any product surface beyond those three things; being mounted into the FastAPI app |
-| **FastAPI** | Sole API surface; upload + fail-fast text-layer check; enqueue; status; signed downloads | LLM calls, generation logic, orchestration |
+| **Gradio UI** | Upload form (TR + Enhanced CBC + Session Plan), job-status view (`gr.Timer` polling), download links; own process, calls FastAPI over HTTP | Any product surface beyond those three things; being mounted into the FastAPI app |
+| **FastAPI** | Sole API surface; upload + fail-fast validation (TR text-layer, CBC format, Session Plan format); enqueue; status; signed downloads | LLM calls, generation logic, orchestration |
 | **Redis / RQ** | Job queue and worker lifecycle | Application state (that lives in Postgres) |
-| **LangGraph graph** | The agent workflow — nodes, explicit state, conditional branching | Being simplified into a linear chain; generating the CBC Module |
-| **Supabase** | Postgres (projects, source uploads, parsed structures, jobs, events, session plans, documents) + Storage (TR PDFs, CBC `.docx`, generated `.docx`) | Auth (not used in MVP), vectors |
+| **LangGraph graph** | The agent workflow — nodes, explicit state, conditional branching | Being simplified into a linear chain; generating the CBC Module or the Session Plan |
+| **Supabase** | Postgres (projects, source uploads, parsed structures, jobs, events, documents) + Storage (TR PDFs, CBC `.docx`, Session Plan PDFs, generated `.docx`) | Auth (not used in MVP), vectors |
 | **Pinecone** | Exemplar corpus vectors, filtered by `section_type` — kept as RAG insurance, unused by default | Holding any TR content |
 
 Supabase is used as a database and a bucket. No auth, no RLS, no edge functions in MVP.
 
 ## 3. The pipeline
 
-Both the TR PDF and the Enhanced CBC `.docx` are required uploads — the CBC Module is
-**not generated**; it is input. This deletes the pipeline's hardest node (the old
-TR→CBC Formatter) and its compounding-error chain (locked `PLAN.md` §1, 2026-08-18).
+All three of the TR PDF, the Enhanced CBC `.docx`, and the trainer's Session Plan are
+required uploads — neither the CBC Module nor the Session Plan is **generated**; both are
+input. This deletes the pipeline's hardest node (the old TR→CBC Formatter) and its
+compounding-error chain (locked `PLAN.md` §1, 2026-08-18), and removes topic-numbering
+guesswork from CBLM drafting by sourcing it straight from the parsed Session Plan
+(`PLAN.md` §1 Session Plan row, revised 2026-08-22 twice).
+
+One job, one graph run, one interrupt — no separate `generate` job or job-kind split.
 
 ```
-Parser (TR + CBC) ──▶ Human selects UC + LO(s)
-                            │
-                            ▼
-                  Session Plan Drafter (1 per LO) ──▶ Review interrupt
-                                                       (checkpoint, job ends)
-                                                              │
-                                                     resume ──┘
-                                                              ▼
-                                              CBLM Drafter (4 sections per LO)
-                                                              │
-                                                              ▼
-                                    Validator ──fail──▶ back to CBLM Drafter
-                                         │               (bounded: 2 retries)
-                                        pass
-                                         ▼
-                                Export (docxtpl → TESDA templates)
+Parser (TR + CBC + Session Plan) ──▶ align_sources
+                                          │
+                                          ▼
+                              ⏸ Interrupt — trainer reviews
+                              TR↔CBC↔Session-Plan alignment,
+                              picks UC + LO(s)
+                              (checkpoint, job ends)
+                                          │
+                                 resume ──┘
+                                          ▼
+                          CBLM Drafter (4 sections per LO,
+                          topic numbering read from parsed
+                          Session Plan — not derived)
+                                          │
+                                          ▼
+                Validator ──fail──▶ back to CBLM Drafter
+                     │               (bounded: 2 retries)
+                    pass
+                     ▼
+            Export (docxtpl → TESDA templates)
 ```
 
 Node responsibilities:
 
 - **Parser** — `pdfplumber.extract_tables()` on the TR → whitespace repair → LLM
-  structuring → Pydantic validation, plus a `.docx` parse of the Enhanced CBC.
-  Table-aware by requirement: flat text extraction loses column boundaries and
-  misattributes performance criteria *silently*. Output is cached in
+  structuring → Pydantic validation; a `.docx` parse of the Enhanced CBC (no LLM); a
+  `pdfplumber.extract_tables()` parse of the Session Plan (no LLM — numbering and topic
+  labels are literal on the page, so this extracts rather than interprets). Table-aware
+  by requirement across all three: flat text extraction loses column boundaries and
+  misattributes performance criteria (or topic numbering) *silently*. Output is cached in
   `parsed_structures.structure` so re-runs skip re-parsing.
-- **Human selection** — trainer picks a Unit of Competency and one or more Learning
-  Outcomes from the parsed CBC before generation starts. Not an LLM step.
-- **Drafters** — LLM, TR-grounded. Facts and traceability come from the TR via prompt;
-  the CBC drives per-LO generation; style is supplied deterministically by the 2026
-  Style Specification Matrix + Caravan house rules, not by retrieval
-  (`CBC_DOMAIN_RULES.md` §1, §8). `RetrieverProtocol` (few-shot default) is kept behind
-  the interface as insurance, not the grounding source. Everything generated must trace
-  to an Assessment Criterion → CBC assessment criterion → TR performance criterion /
-  critical aspect.
-- **Review interrupt** — the Session Plan pauses the graph for human approval/edit
-  before CBLM drafting starts (`SYSTEM_DESIGN.md` §5, `DATA_MODEL_DIAGRAMS.md` §2). The
-  RQ job ends here; state lives in `jobs.checkpoint`. Not a failure or a stall.
+- **`align_sources`** — TR *Element* ↔ CBC *Learning Outcome* ↔ Session Plan LO heading,
+  a three-way join. Not an LLM step; unmatched pairs are surfaced, never guessed.
+- **Interrupt** — the graph pauses right after `align_sources` for the trainer to review
+  the alignment and pick a Unit of Competency and Learning Outcome(s)
+  (`SYSTEM_DESIGN.md` §5, `DATA_MODEL_DIAGRAMS.md` §2). The RQ job ends here; state lives
+  in `jobs.checkpoint`. Not a failure or a stall — and not a plain job boundary either:
+  it's a genuine LangGraph `interrupt_before`, kept deliberately even though its original
+  reason (Session Plan review) is gone, because it's one of only two things `PLAN.md`
+  names as what makes this an agent workflow rather than a script.
+- **CBLM Drafter** — LLM, TR-grounded. Facts and traceability come from the TR via
+  prompt; the CBC drives per-LO generation; topic numbering comes from the parsed Session
+  Plan, not from the drafter; style is supplied deterministically by the 2026 Style
+  Specification Matrix + Caravan house rules, not by retrieval (`CBC_DOMAIN_RULES.md` §1,
+  §8, §9). `RetrieverProtocol` (few-shot default) is kept behind the interface as
+  insurance, not the grounding source. Everything generated must trace to an Assessment
+  Criterion → CBC assessment criterion → TR performance criterion / critical aspect.
 - **Validator** — deterministic structural checks only, asserting the traceability
   chain above. Never an LLM-as-judge.
 - **Export** — `docxtpl` against real TESDA template files.
@@ -106,9 +122,10 @@ on. Do not collapse it.
 
 ## 4. State
 
-One Pydantic `PipelineState` threads through the graph (`tr_tables`, `competency`,
-`los[]`, `cbc_module`, `job_status`), with per-LO `LOState` carrying that LO's session
-plan, CBLM sections, validation result, and retry count. Shape is in `PLAN.md` §2.
+One Pydantic `PipelineState` threads through the graph (`tr`, `cbc`, `session_plan`,
+`los[]`, `job_status`), with per-LO `LOState` carrying that LO's parsed `topics`
+(sourced from the Session Plan, not drafted), CBLM sections, validation result, and
+retry count. Shape is in `PLAN.md` §2.
 
 Two rules:
 
@@ -123,14 +140,15 @@ Full schema in `SYSTEM_DESIGN.md` §3 and `DATA_MODEL_DIAGRAMS.md` §1. The tabl
 each exists:
 
 - `projects` — document-set container. Multiple projects, no versioning.
-- `source_uploads` — storage path + `role` (`tr` | `cbc` | `reference`) for each
-  uploaded file. Two required uploads per project (TR + Enhanced CBC).
-- `parsed_structures` — one row per project holding the parsed TR/CBC `structure`
-  (JSONB) plus any `unmatched` elements the parse couldn't join.
-- `jobs` — one row per run, `kind` = `parse` | `generate`. A parse job ends at
-  `parsed_structures`; a generate job starts after UC + LO selection.
-- `session_plans` — one row per LO's drafted Session Plan, with `approved_at` marking
-  the review-interrupt resume point.
+- `source_uploads` — storage path + `role` (`tr` | `cbc` | `session_plan` | `reference`)
+  for each uploaded file. Three required uploads per project (TR + Enhanced CBC +
+  Session Plan).
+- `parsed_structures` — one row per project holding the parsed TR/CBC/Session-Plan
+  `structure` (JSONB, includes per-LO `topics`) plus any `unmatched` elements the
+  three-way join couldn't resolve.
+- `jobs` — one row per run. No `kind` column — one job type, spanning parse through
+  export, that pauses at the `align_sources` interrupt and resumes via
+  `POST /jobs/{id}/resume`.
 - `corpus_chunks` — RAG corpus metadata, retained as **insurance only** and unused by
   default (the MVP retriever is few-shot, no vector store); vectors would live in
   Pinecone keyed by `vector_id`, filterable by `section_type`.
@@ -160,7 +178,7 @@ Three layers, deliberately not conflated (detail in `SYSTEM_DESIGN.md` §5):
 ## 7. Constraints that shape the design
 
 - **$0 API spend.** Every model, embedding, and vector-store choice is free-tier. The
-  real ceiling is not throughput but **rate limits** (~30 req/min): a 25–30 call run must
+  real ceiling is not throughput but **rate limits** (~30 req/min): a ~30-call run must
   be paced, not fanned out.
 - **No GPU, no local models.** Rules out layout-model parsers like Docling.
 - **No OCR.** TRs are digitally-typed; the text layer carries OCR-era spacing damage
@@ -174,13 +192,18 @@ Regressions to watch for — each of these is a locked decision, and any task th
 require crossing one should be flagged rather than implemented (`CLAUDE.md`):
 
 - LLM calls inside FastAPI request handlers.
-- Flat-text TR extraction replacing table-aware extraction.
-- The CBC Module becoming a generated artifact instead of a required upload.
+- Flat-text TR (or Session Plan) extraction replacing table-aware extraction.
+- The CBC Module or the Session Plan becoming a generated artifact instead of a
+  required upload.
+- `draft_cblm` deriving or inventing topic numbering instead of reading it from the
+  parsed Session Plan.
 - Style being supplied by exemplar retrieval instead of the deterministic Style
   Specification Matrix + house rules.
 - TRs entering the retrieval corpus.
 - An LLM-as-judge replacing deterministic validation.
-- The graph collapsing into a linear chain — losing the conditional retry edge.
+- The graph collapsing into a linear chain — losing the conditional retry edge, **or**
+  losing the `align_sources` interrupt (e.g. reverting it to a plain job boundary) —
+  those are the only two things that make this an agent workflow rather than a script.
 - Adding auth, a full trainer dashboard, or full-qualification runs before M5.
 
 ## 9. Growth path
