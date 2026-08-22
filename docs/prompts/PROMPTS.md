@@ -3,8 +3,11 @@
 The LLM prompts for each node. Companion to `PLAN.md` §2 (the graph) and
 `TECHNICAL_DIAGRAMS.md` §7 (why the Parser works the way it does).
 
-**Status:** Parser is complete and usable. Drafters are blocked on TM I/II reference materials —
-see §5 for exactly what is needed and why writing them without it would be worse than useless.
+**Status:** TR Parser is complete and usable. The CBLM Drafter is blocked on TM I/II
+reference materials — see §5 for exactly what is needed and why writing it without them
+would be worse than useless. **The Session Plan Drafter no longer exists** (CBLM-only
+reversal, 2026-08-22) — Session Plan is a required, parsed upload, not a generated
+artifact; see §2.
 
 ---
 
@@ -12,19 +15,21 @@ see §5 for exactly what is needed and why writing them without it would be wors
 
 | Node | Prompt? | Why |
 |---|---|---|
-| **Parser** | **Yes** — §1 | Structured extraction from repaired table rows |
-| Retriever | No | pgvector similarity, no LLM |
-| **CBC Formatter** | **No** | Deterministic reformat of data the Parser already extracted (`PLAN.md` §1). **Zero LLM calls** — this is why the UI shows `No AI calls` on that option |
-| **Session Plan Drafter** | Yes — §2, **blocked** | Needs the real Session Plan form |
+| **TR Parser** | **Yes** — §1 | Structured extraction from repaired table rows |
+| **CBC Parser** | **No** | `python-docx`, deterministic. CBC is a required upload, never generated (`PLAN.md` §1) |
+| **Session Plan Parser** | **No** — §2 | `pdfplumber.extract_tables()`, deterministic. Numbering and content are already literal on the page — extraction, not interpretation |
+| `align_sources` | No | Deterministic three-way join, no LLM |
+| Retriever | No | Few-shot lookup by default, no vector DB, no embeddings call — insurance only, not on the critical path (`PLAN.md` §1 Vector store / RAG row) |
 | **CBLM Drafter** | Yes — §3, **blocked** | Needs real CBLM section exemplars |
 | **Validator** | **No** — §4 | Structural checks in Python. Deliberately not another LLM call |
 
-Two of six nodes make LLM calls. That is the design working: every node that *can* be
-deterministic *is* deterministic, which is what keeps a run inside a free tier.
+Two of six pipeline nodes make LLM calls (TR Parser, CBLM Drafter). That is the design
+working: every node that *can* be deterministic *is* deterministic, which is what keeps a
+run inside a free tier.
 
 ---
 
-## 1. Parser — complete
+## 1. TR Parser — complete
 
 Runs **after** `pdfplumber.extract_tables()` and the whitespace-repair pass. Its input is
 repaired table rows, never raw page text — the column boundary is the whole point
@@ -47,7 +52,7 @@ class EvidenceGuide(BaseModel):
     required_skills: list[str]
     methods_of_assessment: list[str]
 
-class CompetencyData(BaseModel):
+class TRData(BaseModel):
     unit_title: str
     unit_code: str | None
     unit_descriptor: str | None
@@ -113,7 +118,7 @@ Competency unit rows extracted from pages {page_range} of the TR:
 
 {rows_json}
 
-Extract into the CompetencyData schema.
+Extract into the TRData schema.
 ```
 
 ### Notes on why it reads this way
@@ -138,16 +143,20 @@ different questions, and only the second one matters.
 
 ---
 
-## 2. Session Plan Drafter — blocked
+## 2. Session Plan Parser — no prompt needed
 
-**Contract:** one `SessionPlanDoc` per `LOState`. Input: the LO's title and criteria, the
-competency's evidence guide, plus retrieved Session Plan exemplars (style only — the TR supplies
-facts, retrieval supplies form; `PLAN.md` §1).
+**Reversed 2026-08-22.** There is no Session Plan Drafter. Session Plan is a required
+upload, parsed deterministically (`pdfplumber.extract_tables()`, no LLM) into `TopicRow`
+(number, content, subtopics) per LO — see `CBC_DOMAIN_RULES.md` §9 for the observed
+column structure and the canonical `1.1.1` numbering. `draft_cblm` (§3) reads this list;
+it never drafts, derives, or renumbers a Session Plan.
 
-**Blocked because** a TESDA Session Plan is a *form*, not prose. Its sections, their order, and
-their expected content are fixed by the template an assessor checks against. I can write a prompt
-that produces something reasonable-looking; I cannot write one that produces something an
-assessor accepts, without seeing the form. See §5.
+**What this section used to block on — now largely resolved:** the old blocker here was
+exactly the item requested in §5.1 below (a real Session Plan, because the form matters
+more than any prompt could guess). `reference/SAMPLE-session-plan.pdf` fills that role
+now. What's still open is build-time, not prompt-writing: confirm the parser's table
+extraction against the real file once it's checked into the repo (`PLAN.md` §5 Open
+items).
 
 ---
 
@@ -182,15 +191,17 @@ artifact — is checking nothing. Determinism here is what makes the retry meani
 
 ## 5. What I need from you
 
-To write §2 and §3 properly, in rough order of value:
+To write §3 properly, in rough order of value:
 
-1. **One real Session Plan** you have written or been assessed on. The form matters more than the
-   content — a filled-in blank sample is fine, and a real one is better because it shows how much
-   detail is actually expected per field.
+1. ~~One real Session Plan~~ **In progress** — `reference/SAMPLE-session-plan.pdf` covers
+   this (the parser still needs verifying against it once it's added; see §2). Session
+   Plan is no longer a prompt-writing blocker, since there's no Session Plan prompt to
+   write — it unblocked *parsing*, not drafting.
 2. **One complete CBLM section set for a single LO** — Information Sheet, Task Sheet, Self-Check,
    Answer Key. One good LO beats five partial ones.
-3. **The blank TESDA templates** (`.docx`) if you have them. These are also the M5 export
-   dependency already flagged in `PLAN.md` §5, so sourcing them unblocks two milestones at once.
+3. **The blank CBLM TESDA template(s)** (`.docx`) if you have them. These are also the M6
+   export dependency already flagged in `PLAN.md` §5, so sourcing them unblocks two
+   milestones at once. (No longer a Session Plan template — CBLM is the only export.)
 4. **The TM I/II reference** for how CBLM development is assessed, if you have it — the
    evaluation criteria tell me what the prompts must guarantee.
 
@@ -200,5 +211,5 @@ built on a plausible-but-wrong structure produces documents that look right, pas
 and get rejected by an assessor. That failure is worse than no prompt at all, because it is
 discovered late and it discredits the whole tool.
 
-Drop the files anywhere and point me at them. Even one Session Plan and one LO's CBLM set is
-enough to write both prompts properly.
+Drop the files anywhere and point me at them. One LO's CBLM set is enough to write the
+CBLM Drafter prompt properly.

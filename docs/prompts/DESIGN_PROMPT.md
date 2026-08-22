@@ -48,11 +48,13 @@ opens directly.
 
 ## 2. Product context
 
-A trainer uploads a TESDA (Philippine training authority) Training Regulation PDF. A
-LangGraph agent pipeline generates competency documents and exports them as `.docx`. One run
-produces **26 documents**: 1 CBC Module + 5 Session Plans + 20 CBLM sections (4 per Learning
-Outcome). A run takes a few minutes. The trainer is a Word user, not a web power user — this
-app is a generator, and the real editing happens in Word afterward.
+A trainer uploads a TESDA (Philippine training authority) Training Regulation PDF, an
+Enhanced CBC `.docx`, and a Session Plan PDF — all three required, none generated. A
+LangGraph agent pipeline generates CBLM documents (the system's only output) and exports
+them as `.docx`. One run produces **20 documents**: 4 CBLM sections per Learning Outcome
+(Information Sheet, Task Sheet, Self-Check, Answer Key) × ~5 LOs — topic numbering comes
+from the uploaded Session Plan. A run takes a few minutes. The trainer is a Word user, not
+a web power user — this app is a generator, and the real editing happens in Word afterward.
 
 ## 3. Foundations — use these exact values, do not fetch anything
 
@@ -149,7 +151,7 @@ for them to add visual variety. **Variety is not a goal; one meaning per color i
 
 **Monospace is a semantic signal**, meaning "a value you might copy, compare, or quote."
 Mono **only** for: UUIDs, `LO-1`…`LO-5`, qualification codes (`BPP NC II`), timestamps,
-durations (`4s`), counts (`24 / 26`), retry counters (`(1/2)`), the verbatim error block.
+durations (`4s`), counts (`18 / 20`), retry counters (`(1/2)`), the verbatim error block.
 Mono **never** for: document titles, node names, nav labels, headings, buttons, body prose.
 
 ## 6. The nine UX truths — the load-bearing section
@@ -169,8 +171,8 @@ A design that gets the tokens right and these wrong is a failed design.
 4. **Transient backoff is invisible.** Network-level retries are plumbing. → **Never surface
    them.** The only retry the trainer sees is the meaningful validation retry.
 5. **Collapse `job_events` to the latest row per `(node_name, lo_id)`** — the pair, not the
-   node. The drafters run once per LO; collapsing on node alone makes LO-2's retry overwrite
-   LO-1's success. Yields ~19–24 rows. There is **no `section_type` on events** — do not design
+   node. `cblm_drafter` runs once per LO; collapsing on node alone makes LO-2's retry overwrite
+   LO-1's success. Yields ~20 rows. There is **no `section_type` on events** — do not design
    a row per CBLM section.
 6. **`jobs.error` is verbatim** and may be a raw Python traceback. → Plain-language header
    from structured fields, then the raw string in a collapsed mono block.
@@ -184,19 +186,21 @@ A design that gets the tokens right and these wrong is a failed design.
 
 ## 7. Domain vocabulary — never let raw `snake_case` reach the screen
 
-`jobs.status`: `parsing`→"Parsing the TR" · `retrieving`→"Finding exemplars" ·
-`drafting`→"Drafting documents" · `validating`→"Checking output" · `exporting`→"Building .docx
-files" · `done`→**resolve against the documents list** · `failed`→"Run failed".
+`jobs.status`: `parsing`→"Parsing TR, CBC, Session Plan" · `aligning`→"Aligning sources" ·
+`awaiting_review`→"Waiting for your review" · `drafting_cblm`→"Drafting CBLM sections" ·
+`validating`→"Checking output" · `exporting`→"Building .docx files" · `done`→**resolve
+against the documents list** · `failed`→"Run failed".
 
-`job_events.node_name`: `parser`→"Parser" · `retriever`→"Retriever" · `cbc_formatter`→"CBC
-Module" · `session_plan_drafter`→"Session Plan" · `cblm_drafter`→"CBLM Sections" ·
-`validator`→"Validator" · `export`→"Export".
+`job_events.node_name`: `parse_tr`→"Parse TR" · `parse_cbc`→"Parse CBC" ·
+`parse_session_plan`→"Parse Session Plan" · `align_sources`→"Align Sources" ·
+`retriever`→"Retriever" *(insurance path only)* · `cblm_drafter`→"CBLM Sections" ·
+`apply_house_rules`→"House Rules" · `validator`→"Validator" · `export`→"Export".
 
 `job_events.status`: `started`(blue) · `succeeded`(green) · `retried`(**amber**) · `failed`(red).
 
-Documents: `cbc_module`→"CBC Module" · `session_plan`→"Session Plan" · `info_sheet`→
-"Information Sheet" · `task_sheet`→"Task Sheet" · `self_check`→"Self-Check" · `answer_key`→
-"Answer Key". Status: `ok`(green) · `failed_after_retries`(red, **no download, no retry**).
+Documents: `info_sheet`→"Information Sheet" · `task_sheet`→"Task Sheet" · `self_check`→
+"Self-Check" · `answer_key`→"Answer Key". Status: `ok`(green) ·
+`failed_after_retries`(red, **no download, no retry**).
 
 ## 8. Components
 
@@ -226,7 +230,7 @@ continuing") · `job-failed`(red). Variants `live` / `historical`.
 a11y: `role="log" aria-live="polite" aria-relevant="text"`, `aria-current="true"` on active.
 
 **Run Progress Summary.** Phase label · 6px `radius-full` track · right-aligned mono
-`14 / 26 documents`. **The bar tracks completed document count and never decreases, even when
+`14 / 20 documents`. **The bar tracks completed document count and never decreases, even when
 the phase label moves backwards.** Blue running → green all-ok → **amber if any gap**.
 States: `queued`/`running`/`complete-clean`/`complete-partial`/`failed`.
 a11y: `role="progressbar"` + `aria-valuenow/min/max/label`.
@@ -239,11 +243,11 @@ taking longer than usual."
 **Run Outcome Banner.** Info Callout geometry, **no left accent**, `text-md` 500 heading, mono
 counts. Three variants, derived from the documents list:
 red "Run failed. No documents were generated." + error block ·
-**amber "Completed with gaps — 24 of 26 documents generated."** + one line per gap
+**amber "Completed with gaps — 18 of 20 documents generated."** + one line per gap
 (*"Task Sheet · LO-3 — failed validation after 2 retries"*) + a single re-run button ·
-green "All 26 documents generated." a11y: `role="status"`, receives focus on run completion.
+green "All 20 documents generated." a11y: `role="status"`, receives focus on run completion.
 
-**Verbatim Error Block.** Header from the last node name — *"The Parser stopped
+**Verbatim Error Block.** Header from the last node name — *"The Parse TR step stopped
 unexpectedly."* Then `<details>`/`<summary>` "Show technical detail" → `surface-alt`, 1px
 border, `radius-md`, IBM Plex Mono `text-xs`, `white-space: pre-wrap`, `overflow-x: auto`,
 `max-height: 240px` scroll, copy-to-clipboard button ("Copy" → "Copied").
@@ -251,8 +255,8 @@ States: collapsed / expanded / copied.
 
 **Re-run Action + Confirm.** 32px secondary button "Re-run generation" + `ti-refresh`.
 Dialog (12px radius, `role="dialog" aria-modal="true"`, focus trapped, returns focus on
-close): title "Re-run generation?", body "This starts a completely new run — all 26 documents
-are regenerated, including the 24 that succeeded. There is no way to retry just the failed
+close): title "Re-run generation?", body "This starts a completely new run — all 20 documents
+are regenerated, including the 18 that succeeded. There is no way to retry just the failed
 sections.", actions "Re-run" / "Cancel". Disabled while a job is running, with tooltip.
 
 **TR Upload Dropzone.** Dashed 1px `border-strong`, 8px radius, `surface-alt`,
@@ -266,7 +270,7 @@ A real `<input type="file">` must sit behind it — keyboard reachable, never a 
 large for the current run budget ({n} estimated LLM calls; the cap is {m}). Select a single
 competency."
 
-**LO Group Header.** `LO-2` mono chip · LO title `text-md` 500 · mono `5 / 5` · aggregate
+**LO Group Header.** `LO-2` mono chip · LO title `text-md` 500 · mono `4 / 4` · aggregate
 Status Badge (`ok` or `partial`) · chevron. States: collapsed / expanded / all-ok / partial.
 
 ## 9. Screens
@@ -279,13 +283,14 @@ Status Badge (`ok` or `partial`) · chevron. States: collapsed / expanded / all-
 - **`screens/run-progress.html`** — progress summary · pacing notice · activity list · and on
   terminal, the outcome banner. Show `running`, `pacing`, `done-partial`, and `failed`.
 - **`screens/run-results.html`** — outcome banner · **grouped by run** (latest expanded, prior
-  runs collapsed as "superseded") · CBC Module then LO-1…LO-5 accordions of Document Result
-  Rows. Show `all-ok` and `partial`.
+  runs collapsed as "superseded") · LO-1…LO-5 accordions of Document Result Rows. Show
+  `all-ok` and `partial`.
 
-Empty-state copy: Projects "No projects yet" / "Create a project, then upload a TESDA Training
-Regulation PDF to generate its CBC documents." · Documents while running "Documents will
-appear here as the run completes." · Documents never run "No documents yet" / "Upload a TR PDF
-and run generation." · Prior runs "This is the first run for this project."
+Empty-state copy: Projects "No projects yet" / "Create a project, then upload a TR, an
+Enhanced CBC, and a Session Plan to generate its CBLM documents." · Documents while running
+"Documents will appear here as the run completes." · Documents never run "No documents yet"
+/ "Upload a TR PDF and run generation." · Prior runs "This is the first run for this
+project."
 
 ## 10. Preview file conventions
 
