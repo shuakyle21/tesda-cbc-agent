@@ -5,9 +5,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## What this is
 
 A backend-first AI application that takes a TESDA Training Regulation (TR) PDF plus an
-Enhanced CBC `.docx` and generates per-Learning-Outcome Session Plans and CBLM sections,
-via an explicit multi-agent LangGraph pipeline. Capstone project for Flyrank's Backend AI
-Engineering track — the graded artifact is the agent workflow, not the UI.
+Enhanced CBC `.docx` and generates per-Learning-Outcome CBLM sections, via an explicit
+multi-agent LangGraph pipeline. The TR, the CBC, and the Session Plan are all
+trainer-supplied/trainer-owned — CBLM is the only document the system generates.
+Capstone project for Flyrank's Backend AI Engineering track — the graded artifact is the
+agent workflow, not the UI.
 
 **Current state: early build.** `docs/todos/BUILD_CHECKLIST.md` §0–1 (FastAPI skeleton,
 config, `/health`, lint/test commands, data model) is done; §2–§8 are not. There is **no
@@ -81,7 +83,7 @@ storage are Supabase.
 `docs/plans/PLAN.md` §1 Frontend row): a `gradio_ui/` app, its own process, talking to
 FastAPI over HTTP (`API_BASE_URL`) — `gr.File` × 2 for the TR/CBC uploads, `gr.Timer`
 polling job status (not the deprecated `every=` param), a `gr.Group(visible=...)` step
-that appears on `awaiting_review` for UC/LO selection and Session Plan review, and a
+that appears on `awaiting_review` for UC/LO selection and TR↔CBC alignment review, and a
 `gr.DownloadButton` for the final `.docx`.
 
 ### `frontend/` (frozen Next.js prototype, `frontend/src/`)
@@ -139,11 +141,18 @@ of sync with the code.**
   Enhanced CBC `.docx`.**
 - MVP volume: one competency (~4–5 LOs), not a full qualification.
 - The CBC Module is **not generated — it is a required input** (REVERSED AGAIN
-  2026-08-18, final). Pipeline order: `TR + Enhanced CBC (both uploaded) → parse →
-  human selects UC + LO(s) → Session Plan → CBLM`. This deletes the pipeline's hardest
-  node and its compounding-error chain. The TR is parsed in full and is the grounding
-  authority; the CBC drives per-LO generation. Everything generated must still trace to
-  an Assessment Criterion. See `docs/specs/CBC_DOMAIN_RULES.md`.
+  2026-08-18, final). Neither is the Session Plan (REVERSED 2026-08-22) — the TR, the
+  CBC, and the Session Plan are all trainer-owned; CBLM is the system's only generated
+  output. Pipeline order: `TR + Enhanced CBC (both uploaded) → parse → align → ⏸ trainer
+  reviews the alignment and picks UC + LO(s) → CBLM`. The interrupt and the UC/LO
+  selection happen at the same pause, right after `align_sources`. This deletes both the
+  CBC-generation node's compounding-error chain and the `draft_session_plan` node. The
+  TR is parsed in full and is the grounding authority; the CBC drives per-LO generation.
+  Everything generated must still trace to an Assessment Criterion. See
+  `docs/specs/CBC_DOMAIN_RULES.md`. **Open gap:** CBLM topic/section numbering used to
+  come from the trainer-approved Session Plan; `draft_cblm` now has to derive its own
+  topic breakdown from the CBC's assessment criteria — resolve this against
+  `CBC_DOMAIN_RULES.md`'s numbering rules during implementation, don't guess it.
 - Grounding: **TR-grounded traceability, not exemplar RAG** (locked 2026-08-18). Style
   is supplied deterministically by the 2026 Style Specification Matrix + Caravan house
   rules (`docs/specs/CBC_DOMAIN_RULES.md` §1, §8), which displaced retrieval's original
