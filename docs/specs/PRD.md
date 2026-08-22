@@ -167,7 +167,7 @@ The product is done for MVP when, for one real TR PDF:
 7. A run's full per-node trace can be shown after the fact.
 
 This set corresponds to milestone **M5** in `PLAN.md` §4 — the minimum submittable
-artifact. M6 (the minimal Next.js UI) is additive.
+artifact. M6 (the minimal Gradio UI) is additive.
 
 ## 9. Risks
 
