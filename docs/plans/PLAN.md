@@ -1,10 +1,10 @@
 # tesda-cbc-agent — Project Plan
 
 **What this is:** A backend-first AI application that takes a TESDA Training Regulation
-(TR) PDF plus an Enhanced CBC `.docx` and a Trainer's Session Plan and generates a per-Learning-Outcome CBLM
-(Competency-Based Learning Material) section-set, via an explicit multi-agent LangGraph
-pipeline. The TR, the CBC, and the Session Plan are all trainer-supplied/trainer-owned —
-CBLM is the only document the system generates.
+(TR) PDF, an Enhanced CBC `.docx`, and a trainer's Session Plan, and generates a
+per-Learning-Outcome CBLM (Competency-Based Learning Material) section-set, via an
+explicit multi-agent LangGraph pipeline. The TR, the CBC, and the Session Plan are all
+trainer-supplied/trainer-owned — CBLM is the only document the system generates.
 
 **Why it exists:** Capstone project for Flyrank's Backend AI Engineering track. The
 graded artifact is the agent workflow — not the product, not the UI. Every scope
@@ -31,13 +31,13 @@ area.
 | Decision | Choice | Why |
 |---|---|---|
 | Primary user | Individual trainer, single-user MVP | Capstone, not a product launch |
-| Input | **Two required uploads: official TESDA TR PDF + Enhanced CBC** | TRs are digitally-typed text PDFs — no OCR/vision needed. CBC format/text-layer status is UNVERIFIED — open risk |
+| Input | **Three required uploads: official TESDA TR PDF + Enhanced CBC + trainer's Session Plan** | TRs are digitally-typed text PDFs — no OCR/vision needed. CBC format/text-layer status is UNVERIFIED — open risk. Session Plan format assumed PDF (per `reference/SAMPLE-session-plan.pdf`) — confirm during M1 |
 | MVP document volume | **One competency (~4–5 LOs)**, not a full qualification | Full qualification = ~60–80 CBLM sections in one job — proves nothing extra about the agent design and multiplies free-tier rate-limit risk |
-| Session Plan | **Not generated — trainer-authored, out of system scope.** | REVERSED 2026-08-22. The TR, the CBC, and the Session Plan are all trainer-owned; CBLM is the system's only generated output. Removes the `draft_session_plan` node and its own review step entirely — the human-review interrupt moves to right after `align_sources`, collapsing the old two-pause flow (job-boundary LO selection, then a separate post-Session-Plan interrupt) into one pause that does both jobs. Saves an LLM call and a checkpoint per LO |
+| Session Plan | **Not generated — required input, parsed (no LLM).** | REVISED 2026-08-22 (second pass, same day). First reversal removed `draft_session_plan` (the generation node) and moved the interrupt to right after `align_sources`, collapsing two pauses into one — that part still stands. This pass makes Session Plan a required **upload** rather than an out-of-band reference: the pipeline needs its topic numbering at generation time, so it's parsed alongside TR and CBC and supplies `TopicRow` (number, content, subtopics) to `draft_cblm` directly — no derivation, no LLM guess. Session Plan is still never *generated* by this system; only sourced. See `CBC_DOMAIN_RULES.md` §9 |
 | CBLM scope | Per LO: Information Sheet, Task/Job/Operation Sheet, Self-Check, Answer Key | Standard CBLM section set |
 | CBC Module | **Not generated — required input.** | REVERSED AGAIN 2026-08-18 (final). The Enhanced CBC is uploaded alongside the TR, not derived. This deletes the pipeline's hardest node and its compounding-error chain. Deterministic string rules and the Style Specification Matrix still apply to generated output — see `CBC_DOMAIN_RULES.md` |
 | Output | Generate → export to `.docx` via **docxtpl** against real TESDA template files | No in-app rich editor to build; trainer does final edits in Word |
-| Pipeline order | **TR + Enhanced CBC (both required inputs) → parse → align → ⏸ trainer reviews the alignment and picks UC + LO(s) → CBLM** | CBLM is the pipeline's only generated output — see Session Plan row. The review interrupt and the UC/LO selection now happen at the same pause, right after `align_sources`, instead of splitting selection (job boundary) from review (post-drafting interrupt) |
+| Pipeline order | **TR + Enhanced CBC + Session Plan (three required inputs) → parse → align → ⏸ trainer reviews the alignment and picks UC + LO(s) → CBLM** | CBLM is the pipeline's only generated output — see Session Plan row. The review interrupt and the UC/LO selection happen at the same pause, right after `align_sources`, instead of splitting selection (job boundary) from review (post-drafting interrupt) |
 | Grounding | **TR-grounded traceability, not exemplar RAG** | LOCKED 2026-08-18. The TR is the foundational, core reference document dictating the content, standards, and evaluation framework for the enhanced CBC — so it is parsed in full and treated as the grounding authority. Style is supplied deterministically by the 2026 Style Specification Matrix + Caravan house rules (`CBC_DOMAIN_RULES.md` §1, §8), which displaced retrieval's original job. The Validator asserts the chain: generated CBLM content → CBC assessment criterion → TR performance criterion / critical aspect |
 | Vector store / RAG | **Cut from MVP (assumption — reverse if the rubric requires RAG)** | Pinecone + embeddings existed to supply style; style is now rules. Retrieval interface kept as a seam in the graph (few-shot lookup by section type) so a vector backend can be swapped in without touching state or node contracts |
 | Corpus | Self-collected exemplar CBLMs/Session Plans, **already in hand**. TRs deliberately excluded | Confirmed available now — retrieval is testable from day one. TRs are excluded so retrieval structurally *cannot* return TR content: the uploaded TR supplies facts via the prompt, the corpus supplies style. Including TRs would let a chunk of one qualification's TR leak facts into another's draft — **SUPERSEDED — see Grounding row. Exemplar corpus not required for MVP.** |
@@ -49,7 +49,7 @@ area.
 | Agent orchestration | **LangGraph** | Purpose-built for a graph of agent nodes with explicit state and conditional branching — this *is* the graded artifact |
 | Job execution | RQ + Redis (background job, not synchronous request) | Multi-minute multi-LLM-call jobs need async execution + progress visibility, not a spinner on one HTTP request |
 | Backend | FastAPI, Python, sole API surface | |
-| Frontend | **Minimal Gradio UI**, separate process, calls FastAPI over HTTP: two file uploads, submit, `gr.Timer`-polled job-status view (incl. `awaiting_review`), UC/LO selection + TR↔CBC alignment review as a conditionally-visible step, one download link | REVERSED 2026-08-21. Backend-first capstone — a Python UI cuts scaffolding versus Next.js with no HTTP client wired in yet. Deploy as its own service hitting FastAPI's public URL, not `mount_gradio_app`: mounting has known queue/websocket breakage (gradio-app/gradio#2292, #8839) and couples two deployment lifecycles for no benefit. The Next.js app (`frontend/`) is frozen in place, not deleted — no further work goes into it |
+| Frontend | **Minimal Gradio UI**, separate process, calls FastAPI over HTTP: three file uploads, submit, `gr.Timer`-polled job-status view (incl. `awaiting_review`), UC/LO selection + TR↔CBC alignment review as a conditionally-visible step, one download link | REVERSED 2026-08-21. Backend-first capstone — a Python UI cuts scaffolding versus Next.js with no HTTP client wired in yet. Deploy as its own service hitting FastAPI's public URL, not `mount_gradio_app`: mounting has known queue/websocket breakage (gradio-app/gradio#2292, #8839) and couples two deployment lifecycles for no benefit. The Next.js app (`frontend/`) is frozen in place, not deleted — no further work goes into it |
 | Auth | **None for MVP.** Supabase used only for Postgres + file storage | Google OAuth was scoped for a multi-trainer product; with a single-user minimal UI it's pure overhead. Revisit post-MVP if this becomes a real product |
 | Document management | `projects` table (multiple saved document-sets) kept in schema | Nearly free to include now; no versioning |
 | Output validation | Basic structural checks (required sections present, no empty placeholders, LO count matches TR) — deterministic, not another LLM call | |
@@ -65,20 +65,20 @@ area.
 **Revised 2026-08-18** after the CBLM Caravan rules landed. See `CBC_DOMAIN_RULES.md`.
 
 ```
-Upload TR (.pdf)  +  Enhanced CBC (.docx)     ← BOTH required
+Upload TR (.pdf) + Enhanced CBC (.docx) + Session Plan (.pdf)   ← ALL three required
         │
         ▼   job(kind=parse)
-┌────────────────┐   ┌────────────────┐
-│  parse_tr      │   │  parse_cbc     │  python-docx — deterministic,
-│  pdfplumber →  │   │  (no LLM)      │  no whitespace repair, no OCR
-│  repair → LLM  │   └───────┬────────┘
-└───────┬────────┘           │
-        └──────────┬─────────┘
+┌────────────────┐  ┌────────────────┐  ┌──────────────────────┐
+│  parse_tr      │  │  parse_cbc     │  │  parse_session_plan  │  pdfplumber tables —
+│  pdfplumber →  │  │  (no LLM)      │  │  (no LLM)             │  numbering/content are
+│  repair → LLM  │  └───────┬────────┘  └──────────┬────────────┘  literal, no LLM needed
+└───────┬────────┘          │                       │
+        └──────────┬────────┴───────────────────────┘
                    ▼
           ┌────────────────┐
-          │ align_sources  │  TR "Element" ↔ CBC "Learning Outcome"
-          │ (no LLM)       │  unmatched pairs surfaced, never guessed
-          └───────┬────────┘
+          │ align_sources  │  TR "Element" ↔ CBC "Learning Outcome" ↔
+          │ (no LLM)       │  Session Plan LO heading; unmatched pairs
+          └───────┬────────┘  surfaced, never guessed
                   ▼  parsed_structure
         ╔═════════════════════════════════════╗
         ║  ⏸ INTERRUPT — trainer reviews the  ║   LangGraph interrupt_before
@@ -87,8 +87,8 @@ Upload TR (.pdf)  +  Enhanced CBC (.docx)     ← BOTH required
         ╚═════════════════════════════════════╝
                      ▼   job(kind=generate)
           ┌──────────────────────┐
-          │ draft_cblm (agent)   │  loops the SELECTED LO(s)' assessment
-          │ 4 sections × topic   │  criteria — cannot invent or skip one
+          │ draft_cblm (agent)   │  loops the SELECTED LO(s)' Session-Plan
+          │ 4 sections × topic   │  topics — cannot invent or skip one
           └──────────┬───────────┘
                      ▼
           ┌──────────────────────┐
@@ -124,7 +124,7 @@ class LOState(BaseModel):
     tr_element_id: str | None         # TR "Element" — None if align_sources failed
     title: str
     assessment_criteria: list[str]
-    topics: list[TopicRow] = []       # draft_cblm's own breakdown — see open item below
+    topics: list[TopicRow] = []       # sourced from parse_session_plan, not derived
     cblm_sections: CBLMSectionSet | None = None
     validation: ValidationResult | None = None
     retry_count: int = 0
@@ -132,17 +132,19 @@ class LOState(BaseModel):
 class PipelineState(BaseModel):
     tr: TRData                        # parsed in full — grounding authority
     cbc: CBCData                      # per-LO structure, drives generation
+    session_plan: SessionPlanData     # per-LO topic numbering, parsed not generated
     los: list[LOState]
     job_status: Literal["parsing","aligning","awaiting_review",
                         "drafting_cblm","validating","exporting","done","failed"]
 ```
 
-**Resolved 2026-08-22:** `topics` are not invented by `draft_cblm` — they come from the
-CBC's own Topics/Contents field (extracted by `parse_cbc`, no LLM), the same source they
-came from before Session Plan removal, since the Session Plan only renumbered pre-existing
-CBC topics rather than authoring them. `TopicRow.number` is assigned deterministically per
-`CBC_DOMAIN_RULES.md` §9's `X.Y.Z` convention (canonical form `1.1.1`), which also sets the
-default of one Information Sheet per topic. See that section for the full rationale.
+**Resolved 2026-08-22 (second pass):** `topics` are not invented by `draft_cblm` and not
+derived from the CBC either — Session Plan is now a required upload (§1), parsed by
+`parse_session_plan` (no LLM: the numbering and topic labels are already literal on the
+page, so parsing extracts rather than interprets) directly into `TopicRow.number` /
+`.content` / `.subtopics`. `draft_cblm` reads this list, it doesn't build it. Canonical
+numbering form is `1.1.1` (the sample source is internally inconsistent — normalize during
+parsing). See `CBC_DOMAIN_RULES.md` §9 for the full column structure and rationale.
 
 ---
 
@@ -175,18 +177,19 @@ templatization are new.
 
 1. **M0 — Structured-output smoke test.** Gate on **criteria attaching to the correct LO**,
    not merely schema-valid JSON. Requires one hand-labeled competency as ground truth.
-2. **M1 — Both parsers + `align_sources`.** TR (pdfplumber) and CBC (python-docx) parsed,
-   Element↔LO join demonstrable. Demo: the JSON, showing no cross-attached criteria and a
-   complete join with unmatched pairs surfaced rather than guessed.
+2. **M1 — All three parsers + `align_sources`.** TR (pdfplumber), CBC (python-docx), and
+   Session Plan (pdfplumber tables) parsed; Element↔LO↔Session-Plan-heading join
+   demonstrable. Demo: the JSON, showing no cross-attached criteria and a complete join
+   with unmatched pairs surfaced rather than guessed.
 3. **M2 — Traceability assertable.** Every CBC assessment criterion traces to a TR
    performance criterion or critical aspect; every Critical Aspect assigned to ≥1 LO.
    *(This replaces the former Retriever milestone.)*
 4. **M3 — Interrupt + resume.** Job reaches `awaiting_review` right after `align_sources`;
    trainer reviews the TR↔CBC alignment and picks UC + LO(s); resume starts CBLM drafting
    for the selected LO(s) only.
-5. **M4 — CBLM drafter.** For one LO: derive the topic breakdown from
-   `assessment_criteria` (see the open gap noted in §2), then draft 4 sections × topic,
-   numbering per `CBC_DOMAIN_RULES.md`.
+5. **M4 — CBLM drafter.** For one LO: read the topic list and `1.1.1`-style numbering
+   straight from the parsed Session Plan (no derivation — see §2), then draft 4 sections ×
+   topic per `CBC_DOMAIN_RULES.md`.
 6. **M5 — Validator + retry edge.** Deliberately break a draft and show the graph catching
    and retrying it. **Centerpiece demo.**
 7. **M5.5 — Templatize the TESDA `.docx` files.** Both are in hand but are *filled
@@ -212,10 +215,13 @@ the first thing to cut if time runs out.
   retriever either way, but confirm **before M7** — seeding a corpus late is cheap;
   discovering the requirement on submission day is not.
 - ~~Topic-breakdown source~~ — resolved, see §2 above and `CBC_DOMAIN_RULES.md` §9:
-  topics come from the CBC's own Topics/Contents field, numbering is `1.1.1` canonical.
-  Remaining: confirm the transcription in `CBC_DOMAIN_RULES.md` §9 against the actual
-  `reference/SAMPLE-session-plan.pdf` once it's added — it's currently sourced from
-  hand-transcribed notes, not the file itself.
+  Session Plan is a required upload, parsed (no LLM) directly into `TopicRow`, numbering
+  canonicalized to `1.1.1`. Remaining: `parse_session_plan`'s actual extraction strategy
+  (pdfplumber table layout, column mapping) is a real parsing problem, same category as
+  TR parsing — build and verify it against `reference/SAMPLE-session-plan.pdf` at M1, the
+  same way TR parsing was verified against the *Organic Agriculture Production NC II* TR.
+  `CBC_DOMAIN_RULES.md` §9's column notes are currently hand-transcribed, not read from
+  the file — confirm them once the file's added.
 - Rate-limit pacing is a **graph topology** decision (sequence drafters or semaphore), not
   a tuning knob — decide it when building the graph, not after.
 

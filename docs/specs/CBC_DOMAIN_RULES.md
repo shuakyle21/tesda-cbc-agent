@@ -118,27 +118,31 @@ A topics-⊆-TR check would fail correct output.
 
 ## 3. Pipeline order
 
-**SUPERSEDED 2026-08-18, then again 2026-08-22.** The authoring chain is
-`TR → ENHANCED CBC → SESSION PLAN → CBLM`, but this system builds neither the first arrow
-nor the third: the Enhanced CBC and the Session Plan are both supplied/authored by the
-human, not generated. **CBLM is this system's only generated output.**
+**SUPERSEDED 2026-08-18, then twice more on 2026-08-22.** The authoring chain is
+`TR → ENHANCED CBC → SESSION PLAN → CBLM`, but this system builds only the last arrow: TR,
+Enhanced CBC, and Session Plan are all supplied/authored by the human, not generated.
+**CBLM is this system's only generated output** — but Session Plan, while never
+*generated*, is a required **input**: the pipeline parses it (no LLM) to source CBLM's
+topic numbering directly, rather than deriving one.
 
 ```
-INPUTS (both required)          SELECTION            GENERATED
+INPUTS (all three required)     SELECTION            GENERATED
 ┌──────────────────┐
-│  TR (PDF)        │──┐      ┌──────────────┐      ┌───────────────┐
-├──────────────────┤  ├─parse─▶│ pick UC      │──────▶│ CBLM          │
-│  Enhanced CBC    │──┘      │ pick LO(s)   │      └───────────────┘
-└──────────────────┘         └──────────────┘
-                              (human-in-loop)
+│  TR (PDF)        │──┐
+├──────────────────┤  │      ┌──────────────┐      ┌───────────────┐
+│  Enhanced CBC    │──┼─parse─▶│ pick UC      │──────▶│ CBLM          │
+├──────────────────┤  │      │ pick LO(s)   │      └───────────────┘
+│  Session Plan    │──┘      └──────────────┘
+└──────────────────┘         (human-in-loop)
 ```
 
-- **Both TR and Enhanced CBC are required uploads.** No CBC-generation node exists.
+- **All three of TR, Enhanced CBC, and Session Plan are required uploads.** No
+  CBC-generation node and no Session-Plan-generation node exist.
 - After parsing, the user selects a **Unit of Competency**, then **Learning Outcome(s)**,
   from a dropdown built out of the parsed structure.
-- **Session Plan is not generated — it's a trainer-authored artifact outside this
-  system.** A sample copy is kept at `reference/SAMPLE-session-plan.pdf` purely as a
-  structural reference for CBLM's topic numbering (§9) — it is not a pipeline input.
+- **Session Plan is not generated — it's a trainer-authored artifact, uploaded like TR
+  and CBC.** `parse_session_plan` extracts its topic numbering and content deterministically
+  (§9); `draft_cblm` reads that list, it doesn't invent or renumber it.
 
 ### Vocabulary bridge (load-bearing)
 
@@ -257,18 +261,16 @@ source.
 
 ---
 
-## 9. Topic numbering — derived from the sample Session Plan
+## 9. Topic numbering — parsed from the Session Plan
 
-Source: `reference/SAMPLE-session-plan.pdf` (OAP NC II, LO1: Establish Nursery, 5 hours).
-Kept in the repo purely as a structural exemplar for the numbering convention below —
-not parsed at runtime; Session Plan is not a pipeline input (§3).
-
-**Topics themselves are not derived here.** Per §2's field mapping, topics/contents come
-from the CBC's own Topics/Contents field (sourced from TR Required Knowledge, already
-authored in the uploaded Enhanced CBC) and subtopics from its Range of Variables entries
-— both extracted by `parse_cbc` (no LLM) at parse time, not invented by `draft_cblm` from
-raw assessment criteria. What this section documents is only how the **sample numbers and
-schedules** those pre-existing topics, which `draft_cblm` must reproduce.
+Session Plan is a required upload (§3), parsed by `parse_session_plan` (no LLM — the
+numbering and topic labels are already literal on the page, so parsing extracts rather
+than interprets). It supplies `TopicRow.number` / `.content` / `.subtopics` to
+`draft_cblm` directly — `draft_cblm` reads this list, it does not build or renumber it.
+`reference/SAMPLE-session-plan.pdf` (OAP NC II, LO1: Establish Nursery, 5 hours) is the
+reference fixture for building and testing that parser, the same role
+*TR — Organic Agriculture Production NC II* plays for `parse_tr` (§1's TR-parsing row in
+`PLAN.md`).
 
 Observed column structure from the sample:
 
@@ -291,20 +293,18 @@ Observed column structure from the sample:
 - **Time** is per topic (`1 hour`), summing to the LO's total hours (`5 hours`).
 
 **Numbering is load-bearing and cross-referential:** topic `1.1.1` binds Information
-Sheet 1.1.1, Self-Check 1.1.1, and Answer Key 1.1.1 — this is what `draft_cblm` must
-reproduce without a Session Plan to derive it from. The sample document is internally
-inconsistent (`Self-Check 1.1-1` vs `Self-Check 1.1.1`); **canonical form is `1.1.1`**
-(dot-separated, matches the Information-Sheet/topic binding) — `apply_house_rules`
-enforces this deterministically, no LLM judgment involved.
+Sheet 1.1.1, Self-Check 1.1.1, and Answer Key 1.1.1 — `parse_session_plan` extracts it,
+`draft_cblm` reuses it verbatim for every section it drafts under that topic. The sample
+document is internally inconsistent (`Self-Check 1.1-1` vs `Self-Check 1.1.1`);
+**canonical form is `1.1.1`** (dot-separated, matches the Information-Sheet/topic
+binding) — normalized during parsing, deterministically, no LLM judgment involved.
 
-### Number of Information Sheets per topic: default to one
+### Number of Information Sheets per topic: read from the Session Plan
 
-The sample's "however many contents the trainer decides on" escape hatch had somewhere to
-live — the Session Plan the trainer edited at the review interrupt. That interrupt is now
-earlier in the pipeline (§3) and reviews TR↔CBC alignment, not a per-topic content count,
-so there's no longer a place to record a variable count mid-run. **Default: one
-Information Sheet per topic**, per §5's existing rule — this is a deliberate
-simplification from cutting Session Plan generation, not a rediscovery of the original
-rule. If a trainer needs more than one Information Sheet for a topic, that's a CBC-editing
-decision (split the topic before upload), not something `draft_cblm` decides at generation
-time.
+Per the project owner: how many Information Sheets a topic gets depends on how many
+contents the **trainer** decided on when authoring the Session Plan. Since Session Plan
+is now a required, parsed input (§3) rather than an out-of-band artifact, this is no
+longer a system default to invent — `parse_session_plan` reads however many distinct
+Learning-Content rows exist under a topic, and `draft_cblm` drafts one Information Sheet
+per row it's given. The AI's job is still **not** to decide the count — it's to generate
+content matching the Style Specification Matrix for whatever contents are given.
