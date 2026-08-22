@@ -11,18 +11,23 @@ grilling session, it's marked **(assumption)** — flag if you'd choose differen
 ## 1. Requirements
 
 ### Functional
-**Revised 2026-08-18** — see `CBC_DOMAIN_RULES.md` and `PLAN.md` §1.
+**Revised 2026-08-18, then twice more on 2026-08-22** — see `CBC_DOMAIN_RULES.md` and
+`PLAN.md` §1.
 
-- Accept **two required uploads**: a TR PDF and an Enhanced CBC `.docx`, scoped to one
-  competency (~4–5 LOs) for MVP.
-- Parse the TR **in full** (grounding authority) and the CBC (per-LO structure), then join
-  TR *Element* ↔ CBC *Learning Outcome*.
-- Present the parsed structure so the trainer can **select a Unit of Competency and its
-  Learning Outcomes** before generation begins.
-- Generate two artifact types: **Session Plans** (1 per LO) and **CBLM section-sets**
-  (4 sections per topic). The CBC Module is **not** generated — it is an input.
-- **Pause after the Session Plan** for trainer review/edit, then generate the CBLM
-  *aligned to the approved plan*.
+- Accept **three required uploads**: a TR PDF, an Enhanced CBC `.docx`, and a trainer's
+  Session Plan (PDF), scoped to one competency (~4–5 LOs) for MVP.
+- Parse the TR **in full** (grounding authority), the CBC (per-LO structure), and the
+  Session Plan (per-LO topic numbering), then join TR *Element* ↔ CBC *Learning Outcome*
+  ↔ Session Plan LO heading.
+- Present the parsed structure so the trainer can **review the TR↔CBC↔Session-Plan
+  alignment and select a Unit of Competency and its Learning Outcomes** before generation
+  begins.
+- Generate **CBLM section-sets only** (4 sections per topic) — this system's sole
+  generated output. Neither the CBC Module nor the Session Plan is generated; both are
+  required, parsed inputs.
+- **Pause once, right after `align_sources`** (a genuine LangGraph interrupt, not a plain
+  job boundary — see §2), for the trainer to review the alignment and pick UC + LO(s),
+  then generate CBLM using the topic numbering read directly from the parsed Session Plan.
 - Ground generated content by traceability (topic → CBC criterion → TR criterion), not by
   exemplar retrieval.
 - Validate generated content structurally; retry the specific failing draft (bounded)
@@ -37,7 +42,7 @@ grilling session, it's marked **(assumption)** — flag if you'd choose differen
   single bad LO/section must not sink the entire run (partial success, not all-or-nothing).
 - **Observability:** every node transition is inspectable, mid-run — this is also the
   capstone's evidence that the "agent workflow" is real orchestration, not a black box.
-- **Latency:** not real-time. A full competency run (~25–30 LLM calls) completing in
+- **Latency:** not real-time. A full competency run (~30 LLM calls, see §6) completing in
   low single-digit minutes is acceptable; this is a background job, not a request.
 - **Availability:** none required beyond local dev — single user, single machine.
 
@@ -52,54 +57,57 @@ grilling session, it's marked **(assumption)** — flag if you'd choose differen
 ## 2. High-level design
 
 ```
-┌────────────┐   upload TR (.pdf) + CBC (.docx)   ┌──────────────┐
-│   Gradio   │ ─────────────────────────────────▶ │   FastAPI    │
-│ (minimal   │                                     │  (sole API   │
-│  UI, own   │ ◀───────────────────────────────── │   surface)   │
-│  process)  │   status / review / download        └──────┬───────┘
-└────────────┘                                             │
-       ▲                                                   │ enqueue
-       │  awaiting_review                                  ▼
-       │  ──────────────▶ trainer edits            ┌──────────────┐
-       │       the Session Plan, resumes           │  Redis (RQ)  │
-       │                                           └──────┬───────┘
-       │                                                  │ dequeue
-       │                                                  ▼
-       │                                           ┌───────────────┐     ┌────────────────┐
-       └────────────────────────────────────────── │   RQ worker   │────▶│ Groq/OpenRouter│
-                                                   │ runs LangGraph│     │ (LLM, free tier)│
-                                                   └───────┬───────┘     └────────────────┘
-                                                           │
-                                                           ▼
-                                                   ┌──────────────┐
-                                                   │  Supabase    │
-                                                   │  Postgres +  │
-                                                   │  Storage     │
-                                                   └──────────────┘
+┌────────────┐  upload TR (.pdf) + CBC (.docx) + Session Plan (.pdf)  ┌──────────────┐
+│   Gradio   │ ─────────────────────────────────────────────────────▶│   FastAPI    │
+│ (minimal   │                                                        │  (sole API   │
+│  UI, own   │ ◀───────────────────────────────────────────────────  │   surface)   │
+│  process)  │   status / review / download                          └──────┬───────┘
+└────────────┘                                                               │
+       ▲                                                                     │ enqueue
+       │  awaiting_review                                                    ▼
+       │  ──────────────▶ trainer reviews the                       ┌──────────────┐
+       │       TR↔CBC↔Session-Plan alignment,                       │  Redis (RQ)  │
+       │       picks UC + LO(s), resumes                            └──────┬───────┘
+       │                                                                    │ dequeue
+       │                                                                    ▼
+       │                                                             ┌───────────────┐     ┌────────────────┐
+       └──────────────────────────────────────────────────────────  │   RQ worker   │────▶│ Groq/OpenRouter│
+                                                                     │ runs LangGraph│     │ (LLM, free tier)│
+                                                                     └───────┬───────┘     └────────────────┘
+                                                                             │
+                                                                             ▼
+                                                                     ┌──────────────┐
+                                                                     │  Supabase    │
+                                                                     │  Postgres +  │
+                                                                     │  Storage     │
+                                                                     └──────────────┘
 ```
 
-**Two job kinds, one interrupt.** A `parse` job produces the structure the trainer selects
-from; a `generate` job drafts the Session Plan, **ends at the interrupt**, and is resumed
-by a fresh job that drafts the CBLM against the approved plan. No worker slot is ever held
-waiting on a human.
+**One job, one interrupt.** A single job runs the whole graph — parse (all three
+sources), align, **[interrupt]**, `draft_cblm`, house rules, validate, export. There is no
+`parse`/`generate` job-kind split: `POST /projects/{id}/parse` starts the only job, and
+`POST /jobs/{id}/resume` continues that **same** graph run from its checkpoint rather than
+starting a new one. The job **ends** at the interrupt (checkpoint persisted to
+`jobs.checkpoint`) — no worker slot is ever held waiting on a human.
 
 **No vector store.** Retrieval sits behind `RetrieverProtocol`; the MVP implementation is a
 few-shot lookup. A Pinecone adapter is retained but unused — see `PLAN.md` §1.
 
 ### Data flow
-1. Client uploads **both** sources → `POST /projects/{id}/sources` (×2, `role=tr｜cbc`) →
-   FastAPI streams each to Supabase Storage, creates a `source_uploads` row, and
-   *synchronously* validates (TR: text layer present? CBC: really `.docx`?).
-2. `POST /projects/{id}/parse` → `parse` job → parses both, joins TR *Element* ↔ CBC
-   *Learning Outcome*, writes `parsed_structures` (with any `unmatched` pairs).
-3. Client reads `GET /projects/{id}/structure` and the trainer picks a Unit of Competency
-   and Learning Outcomes.
-4. `POST /projects/{id}/generate` → `generate` job → drafts Session Plans, persists the
-   checkpoint, sets `status = awaiting_review`, and **exits**.
-5. Trainer reviews/edits, then `POST /jobs/{id}/resume` → new job resumes from the
-   checkpoint → CBLM drafted against the **approved** plan → house rules → validate/retry
-   → export.
-6. Client polls `GET /jobs/{job_id}`; on `done`, fetches `GET /projects/{id}/documents`
+1. Client uploads **all three** sources → `POST /projects/{id}/sources` (×3,
+   `role=tr｜cbc｜session_plan`) → FastAPI streams each to Supabase Storage, creates a
+   `source_uploads` row, and *synchronously* validates (TR: text layer present? CBC:
+   really `.docx`? Session Plan: really a PDF with the expected table columns?).
+2. `POST /projects/{id}/parse` → the **only** job-start endpoint → parses all three,
+   joins TR *Element* ↔ CBC *Learning Outcome* ↔ Session Plan LO heading, writes
+   `parsed_structures` (with any `unmatched` pairs), then **hits the interrupt**: persists
+   the checkpoint, sets `status = awaiting_review`, and exits.
+3. Client reads `GET /projects/{id}/structure` and the trainer reviews the alignment and
+   picks a Unit of Competency and Learning Outcomes.
+4. `POST /jobs/{id}/resume` with `{ uc_id, lo_ids }` → resumes the **same** job from its
+   checkpoint → `draft_cblm` reads topic numbering straight from the parsed Session Plan
+   for the selected LO(s) → house rules → validate/retry → export.
+5. Client polls `GET /jobs/{job_id}`; on `done`, fetches `GET /projects/{id}/documents`
    for signed download URLs.
 
 FastAPI never calls the LLM directly — all AI work happens inside the RQ worker process
@@ -118,11 +126,13 @@ projects (
   created_at    timestamptz default now()
 )
 
-source_uploads (                        -- was tr_uploads; two required sources now
+source_uploads (                        -- was tr_uploads; three required sources now
   id            uuid primary key,
   project_id    uuid references projects(id),
-  role          text not null,           -- 'tr' | 'cbc' | 'reference'
-  mime_type     text not null,           -- TR = application/pdf, CBC = .docx
+  role          text not null,           -- 'tr' | 'cbc' | 'session_plan' | 'reference'
+  mime_type     text not null,           -- TR = application/pdf, CBC = .docx,
+                                          -- Session Plan = application/pdf (assumed —
+                                          -- confirm at M1, see PLAN.md §1 Input row)
   storage_path  text not null,
   created_at    timestamptz default now()
 )
@@ -130,29 +140,27 @@ source_uploads (                        -- was tr_uploads; two required sources 
 parsed_structures (                      -- cache + the source of the UC/LO dropdown
   id            uuid primary key,
   project_id    uuid references projects(id),
-  structure     jsonb not null,          -- Pydantic-validated: UCs -> LOs -> criteria,
-                                           -- with TR Element <-> CBC LO join results
+  structure     jsonb not null,          -- Pydantic-validated: UCs -> LOs -> criteria
+                                           -- -> topics (number, content, subtopics),
+                                           -- with TR Element <-> CBC LO <-> Session Plan
+                                           -- heading join results
   unmatched     jsonb,                   -- join failures, surfaced to the human
   created_at    timestamptz default now()
 )
 
-session_plans (                          -- editable artifact, not just a rendered file
-  id            uuid primary key,
-  job_id        uuid references jobs(id),
-  uc_id         text not null,
-  lo_id         text not null,
-  content       jsonb not null,          -- 7-column matrix rows (see CBC_DOMAIN_RULES §9)
-  approved_at   timestamptz,             -- null until the trainer resumes the job
-  created_at    timestamptz default now()
-)
+-- session_plans table REMOVED 2026-08-22. Session Plan is a parsed, required upload,
+-- not an editable artifact this system produces or the trainer edits in-app — its
+-- per-LO topic list lives directly in parsed_structures.structure. There is nothing
+-- left for a separate table to track (no approved_at: nothing here to approve, only to
+-- read).
 
 corpus_chunks (                          -- RAG INSURANCE ONLY, unused by default.
                                           -- Retrieval is behind RetrieverProtocol; the
                                           -- MVP uses FewShotRetriever (no vector DB).
                                           -- See PLAN.md "Vector store / RAG" row.
   id            uuid primary key,
-  section_type  text not null,           -- 'session_plan' | 'info_sheet' | 'task_sheet'
-                                          -- | 'self_check' | 'answer_key' | 'cbc_module'
+  section_type  text not null,           -- 'info_sheet' | 'task_sheet' | 'self_check'
+                                          -- | 'answer_key'
   content       text not null,
   vector_id     text unique,             -- null unless a vector backend is enabled
   source_doc    text,                    -- provenance, for corpus auditing
@@ -160,15 +168,14 @@ corpus_chunks (                          -- RAG INSURANCE ONLY, unused by defaul
 )
 -- unused by default; kept so enabling a vector backend is an adapter swap
 
-jobs (
-  id            uuid primary key,
+jobs (                                   -- one job kind now — no more parse/generate
+  id            uuid primary key,        -- split (removed 2026-08-22, see §2)
   project_id    uuid references projects(id),
-  kind          text not null,           -- 'parse' | 'generate'
-  status        text not null,           -- parsing|aligning|drafting_plan
-                                          -- |awaiting_review|drafting_cblm|validating
-                                          -- |exporting|done|failed
+  status        text not null,           -- parsing|aligning|awaiting_review
+                                          -- |drafting_cblm|validating|exporting
+                                          -- |done|failed
   checkpoint    jsonb,                   -- LangGraph checkpointer state; required to
-                                          -- resume after the Session Plan interrupt
+                                          -- resume after the align_sources interrupt
   error         text,
   created_at    timestamptz default now(),
   updated_at    timestamptz default now()
@@ -177,9 +184,10 @@ jobs (
 job_events (                             -- per-node trace, drives both UI progress
   id            uuid primary key,        -- and the agent-workflow demo/debug story
   job_id        uuid references jobs(id),
-  node_name     text not null,           -- 'parser' | 'retriever' | 'session_plan_drafter'
-                                          -- | 'cblm_drafter' | 'align_sources' | 'validator'
-  lo_id         text,                    -- null for job-level nodes (parser, formatter)
+  node_name     text not null,           -- 'parse_tr' | 'parse_cbc' | 'parse_session_plan'
+                                          -- | 'align_sources' | 'retriever' | 'cblm_drafter'
+                                          -- | 'apply_house_rules' | 'validator'
+  lo_id         text,                    -- null for job-level nodes (parsers, align_sources)
   status        text not null,           -- started|succeeded|failed|retried
   detail        jsonb,                   -- e.g. {"retry_count": 1, "reason": "..."}
   created_at    timestamptz default now()
@@ -189,9 +197,9 @@ generated_documents (
   id            uuid primary key,
   project_id    uuid references projects(id),
   job_id        uuid references jobs(id),
-  doc_type      text not null,           -- 'session_plan' | 'info_sheet' | 'task_sheet'
-                                          -- | 'self_check' | 'answer_key'
-  lo_id         text,                    -- null for cbc_module
+  doc_type      text not null,           -- 'info_sheet' | 'task_sheet' | 'self_check'
+                                          -- | 'answer_key'
+  lo_id         text not null,
   section_type  text,                    -- null unless doc_type = 'cblm_section'
   content       jsonb not null,          -- STRUCTURED content, not just the rendered file.
                                           -- Required so post-MVP chat / "Improve with AI"
@@ -205,8 +213,8 @@ generated_documents (
 
 **Why `job_events` as its own table (assumption):** a single `jobs.progress` JSON blob
 would work for the status view, but a normalized event log is what lets the minimal UI
-(or a debug endpoint) show "Parser succeeded in 4s → align_sources succeeded → Session Plan
-LO-2 failed validation, retrying (1/2) → ..." — that trace *is* the agent-workflow
+(or a debug endpoint) show "Parser succeeded in 4s → align_sources succeeded → CBLM LO-2
+Info Sheet failed validation, retrying (1/2) → ..." — that trace *is* the agent-workflow
 evidence for the capstone, not an afterthought.
 
 ---
@@ -217,25 +225,30 @@ evidence for the capstone, not an afterthought.
 POST   /projects
        { title, qualification_code? }              → { id }
 
-POST   /projects/{id}/sources                       (multipart; call twice)
-       { role: "tr" | "cbc" }
+POST   /projects/{id}/sources                       (multipart; call three times)
+       { role: "tr" | "cbc" | "session_plan" }
        → { source_upload_id }
        or 400 { error: "no text layer detected" }        (TR, PDF)
        or 400 { error: "CBC must be .docx" }             (CBC, format guard)
+       or 400 { error: "Session Plan must be a PDF with a Learning Content column" }
+                                                          (Session Plan, format guard)
 
-POST   /projects/{id}/parse                         → { job_id }   kind=parse
+POST   /projects/{id}/parse                         → { job_id }
+       The only job-start endpoint. Parses all three sources and pauses at the
+       align_sources interrupt (status = awaiting_review) — see §2.
 
 GET    /projects/{id}/structure                     → { ucs: [{ id, title,
-         los: [{ id, title, tr_element_id }] }], unmatched: [...] }
-       Drives the UC / Learning Outcome dropdown.
-
-POST   /projects/{id}/generate                      → { job_id }   kind=generate
-       { uc_id, lo_ids: [...], scope: "session_plan" | "cblm" | "both" }
+         los: [{ id, title, tr_element_id,
+                 topics: [{ number, content, subtopics }] }] }], unmatched: [...] }
+       Drives the UC / Learning Outcome dropdown and the alignment-review view; `topics`
+       is what was parsed from the Session Plan for that LO.
 
 POST   /jobs/{job_id}/resume                        → { job_id }
-       { session_plan_id, action: "approve" | "edit", content? }
-       Valid only while status = awaiting_review. Resumes the graph from the
-       checkpoint; the CBLM drafter reads the approved/edited plan.
+       { uc_id, lo_ids: [...] }
+       Valid only while status = awaiting_review. Resumes the **same** graph from its
+       checkpoint; `draft_cblm` reads topic numbering for the selected LO(s) straight
+       from `parsed_structures` — nothing to approve or edit, so no separate
+       approve/edit payload shape.
 
 GET    /jobs/{job_id}
        → { status, events: [job_event...], error? }
@@ -244,7 +257,7 @@ GET    /jobs/{job_id}/events                         (optional, if events list g
        → [job_event...]
 
 GET    /projects/{id}/documents
-       → [{ doc_type, lo_id?, section_type?, status, download_url }]
+       → [{ doc_type, lo_id, section_type?, status, download_url }]
 
 GET    /documents/{doc_id}/download
        → signed Supabase Storage URL (redirect) or streamed file
@@ -265,8 +278,11 @@ Three distinct retry/failure layers — don't conflate them:
    plumbing, not part of the graded agent logic — it should be invisible when it works.
 
 2. **Validation failure → LangGraph retry edge** (the graded conditional branching).
-   Validator fails a specific LO's Session Plan or CBLM section → route back to that
-   section's Drafter with the validation failure reason appended to its prompt context.
+   Validator fails a specific LO's CBLM section → route back to that section's Drafter
+   with the validation failure reason appended to its prompt context. (Session Plan has
+   no drafter and nothing to validate here — its own failure mode, e.g. an unexpected
+   table layout, is a `parse_session_plan` failure and belongs to point 3 below, the same
+   as a TR/CBC parse failure.)
    Bounded at **2 retries per section (assumption)**. On exhausting retries: mark that
    `generated_documents` row `status = 'failed_after_retries'`, log a `job_events` entry,
    and **let the rest of the pipeline continue** — one bad LO does not fail the whole
@@ -281,14 +297,16 @@ Three distinct retry/failure layers — don't conflate them:
    annoying):** user re-triggers manually via a new `POST /generate` call; add
    checkpoint/resume only if manual re-runs prove costly in practice.
 
-**A fourth state that is not a failure: `awaiting_review`.** The Session Plan interrupt
+**A fourth state that is not a failure: `awaiting_review`.** The `align_sources` interrupt
 suspends the graph mid-run. It must not be modelled as an error, a timeout, or a stalled
 job — the UI shows it as a state requiring action, and the RQ job **ends** at the interrupt
 (the checkpoint is persisted in `jobs.checkpoint`) rather than blocking a worker slot for
 however long the trainer takes. `POST /jobs/{id}/resume` enqueues a *new* RQ job that
 resumes the graph from that checkpoint. Consequences worth stating: a job may sit in
 `awaiting_review` indefinitely, so any job-timeout sweep must exclude that status; and
-resuming twice must be idempotent — guard on `session_plans.approved_at` being null.
+resuming twice must be idempotent — guard on `jobs.status` still being `awaiting_review` at
+resume time (transition it away from that status inside the same handler that starts the
+resume), since there's no separate editable artifact left to carry an `approved_at` flag.
 
 **Fail-fast vs partial-success is the one design call here worth flagging explicitly:**
 partial success (continue past a failed LO, mark it, keep going) was chosen over
@@ -302,12 +320,15 @@ behavior for a real tool.
 ## 6. Scale and reliability
 
 ### Load estimate (MVP)
-One competency run ≈ 1 Parser call + (5 LOs × ~2 section-type retrieval queries) +
-(5 Session Plan drafts + 5 × 4 CBLM drafts) ≈ **25–30 LLM calls per run**, single user,
-essentially zero concurrency. The real constraint isn't throughput, it's free-tier
-**rate limits** (e.g. Groq's free tier is commonly ~30 req/min depending on model) —
-Milestone 0's smoke test should also note observed rate-limit behavior, since a 25–30
-call run may need pacing (stagger Drafter calls, don't fan them all out at once).
+One competency run ≈ 1 Parser call (TR structuring) + (5 LOs × ~2 section-type retrieval
+queries) + (5 LOs × 4 CBLM drafts) ≈ **~30 LLM calls per run**, single user, essentially
+zero concurrency. (Down from the earlier two-output design's ~35 — cutting Session Plan
+*generation* removes 5 drafter calls, a modest saving since CBLM's 4-sections-per-topic
+drafting was always the dominant cost, not Session Plan.) The real constraint isn't
+throughput, it's free-tier **rate limits** (e.g.
+Groq's free tier is commonly ~30 req/min depending on model) — Milestone 0's smoke test
+should also note observed rate-limit behavior, since a ~30-call run may need pacing
+(stagger Drafter calls, don't fan them all out at once).
 
 ### What doesn't need solving now, and why
 - **Horizontal scaling / multiple workers:** not needed at single-user MVP. If this
@@ -346,9 +367,10 @@ list — it's additive, not a blocker.
 | Progress tracking | Normalized `job_events` table | Single `jobs.progress` JSON blob | Event log doubles as the agent-workflow trace/demo evidence, not just a progress bar |
 | Corpus scope | Global `corpus_chunks`, not per-project | Per-project corpus | Exemplars are reusable style references across qualifications; no reason to silo them |
 | TR validity check | Fail fast at upload (before job enqueue) | Discover failure inside the job | Cheap check, avoids burning a job slot and rate-limit budget on unusable input |
-| Human-in-the-loop shape | Two jobs (parse / generate) **plus** a LangGraph interrupt at Session Plan → CBLM | One job that blocks, or a fully synchronous parse | A blocked worker holds a slot for an unbounded human delay; a synchronous 91-page parse blows the HTTP timeout. Ending the job at the interrupt and resuming from a checkpoint costs neither |
+| Human-in-the-loop shape | One job, one LangGraph interrupt right after `align_sources` | A plain two-job boundary (parse job ends, client starts a separate generate job) — no checkpoint needed | A plain boundary works too and is simpler, but the pipeline would then have zero mid-graph interrupts. `PLAN.md` names the interrupt as one of only two things that make this an agent workflow rather than a script, so it's kept even though Session Plan drafting — the original reason for a mid-graph pause — is gone (REVISED 2026-08-22) |
 | Grounding | TR-grounded traceability chain | Exemplar RAG over a vector store | The Style Specification Matrix supplies style as *checkable rules*; retrieval's original job disappeared. Traceability is assertable, RAG similarity is not |
 | CBC handling | Required `.docx` input, parsed deterministically | Generated by an LLM node from the TR | Generating it means inventing course structure the human has already authored, and every downstream artifact inherits its errors |
+| Session Plan handling | Required PDF input, parsed deterministically (no LLM) | Generated by this system, or kept as an out-of-band reference doc | Parsing it directly lets `draft_cblm` reuse the trainer's real topic numbering instead of guessing one — see `CBC_DOMAIN_RULES.md` §9 (REVISED 2026-08-22, twice) |
 
 ---
 

@@ -12,9 +12,13 @@ system generates. Capstone project for Flyrank's Backend AI Engineering track �
 graded artifact is the agent workflow, not the UI.
 
 **Current state: early build.** `docs/todos/BUILD_CHECKLIST.md` §0–1 (FastAPI skeleton,
-config, `/health`, lint/test commands, data model) is done; §2–§8 are not. There is **no
-database migration run against a fresh env, no parser, no LangGraph node, no RQ worker,
-and no Gradio UI yet** (`gradio_ui/` does not exist — §7 is unstarted). Check
+config, `/health`, lint/test commands, data model) is done — including the initial
+migration, **already applied to a live Supabase project** (all 8 tables confirmed via
+`pg_tables`). §2–§8 are not: there is **no parser, no LangGraph node, no RQ worker, and
+no Gradio UI yet** (`gradio_ui/` does not exist — §7 is unstarted). Because the schema is
+live, the CBLM-only + three-upload reversal (2026-08-22) needs a **new** migration
+(`session_plans` drop, `jobs.kind` removal) — editing the applied `0001_initial.py` in
+place is not enough; see `docs/todos/BUILD_CHECKLIST.md` §1. Check
 `docs/todos/BUILD_CHECKLIST.md` before assuming any given piece exists.
 
 **Frontend REVERSED 2026-08-21:** the UI is now **Gradio**, not Next.js — a backend-first

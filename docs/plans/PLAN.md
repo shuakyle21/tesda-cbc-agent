@@ -64,10 +64,14 @@ area.
 
 **Revised 2026-08-18** after the CBLM Caravan rules landed. See `CBC_DOMAIN_RULES.md`.
 
+One job, one graph, one interrupt — no more `parse`/`generate` job-kind split. `POST
+/projects/{id}/parse` starts the only job; `POST /jobs/{id}/resume` continues the same
+graph from its checkpoint.
+
 ```
 Upload TR (.pdf) + Enhanced CBC (.docx) + Session Plan (.pdf)   ← ALL three required
         │
-        ▼   job(kind=parse)
+        ▼   POST /projects/{id}/parse  →  one job, one graph run
 ┌────────────────┐  ┌────────────────┐  ┌──────────────────────┐
 │  parse_tr      │  │  parse_cbc     │  │  parse_session_plan  │  pdfplumber tables —
 │  pdfplumber →  │  │  (no LLM)      │  │  (no LLM)             │  numbering/content are
@@ -85,7 +89,7 @@ Upload TR (.pdf) + Enhanced CBC (.docx) + Session Plan (.pdf)   ← ALL three re
         ║    TR↔CBC alignment, picks UC + LO(s)║  + checkpointer;
         ║    then POST /jobs/{id}/resume       ║   jobs.status = awaiting_review
         ╚═════════════════════════════════════╝
-                     ▼   job(kind=generate)
+                     ▼   same job resumes from checkpoint
           ┌──────────────────────┐
           │ draft_cblm (agent)   │  loops the SELECTED LO(s)' Session-Plan
           │ 4 sections × topic   │  topics — cannot invent or skip one
