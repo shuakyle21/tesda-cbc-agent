@@ -34,6 +34,24 @@ exemplar RAG. See `CBC_DOMAIN_RULES.md` for the domain rules and `PLAN.md` §1 f
       URI instead: `postgres.<project-ref>@aws-0-<region>.pooler.supabase.com:5432`).
       All 8 tables confirmed live via `pg_tables` query.
 
+### 1a. Project API contract (found via frontend/backend conflict audit, 2026-08-22)
+
+`GET /projects` is currently a hardcoded stub (`{"id": "1", "name": "Project 1"}`) that
+never touches the real `Project` model from §1. This is backend-only work — independent
+of which UI eventually calls it (Gradio, per §7's reversal), so it's not blocked on the
+Gradio scaffold.
+
+- [ ] Replace the `GET /projects` stub with a real query via `get_db` against the `Project`
+      model; add `ProjectOut`/`ProjectCreate` Pydantic schemas (`backend/app/schemas/project.py`).
+- [ ] Add `POST /projects {title, qualification_code?} → {id}` (see `docs/specs/SYSTEM_DESIGN.md` §4).
+- [ ] Add `CORSMiddleware` to `backend/app/main.py` for whichever origin `gradio_ui/`
+      runs on once it exists (its own process, not `mount_gradio_app` — see §7).
+- [ ] Add `backend/tests/test_projects.py`, extending the `test_health.py` pattern. Confirm
+      `DATABASE_URL` is a real value first — `db/session.py` builds the engine at import
+      time, so this can otherwise break `test_health.py` collection too.
+- [ ] Add `.claude/agents/api-contract-sync.md` (read-only: `Read, Grep, Glob, Bash`, no
+      `Write`/`Edit`) to flag future frontend/backend schema drift as `gradio_ui/` is built.
+
 ## 2. M0 smoke test
 
 - [ ] Hand-label one competency as ground truth (TR Elements → performance criteria).
