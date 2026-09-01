@@ -1,0 +1,40 @@
+name: Spike
+description: Time-boxed research to reduce uncertainty.
+title: "spike: "
+labels: ["type:spike", "needs-triage"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem statement
+      description: What unknown must be clarified?
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope boundaries
+      description: Investigation limits and non-goals.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: What artifact/decision output marks the spike complete?
+    validations:
+      required: true
+  - type: textarea
+    id: deps
+    attributes:
+      label: Dependencies / blockers
+      description: Required inputs, access, credentials, datasets, or references.
+    validations:
+      required: true
+  - type: textarea
+    id: verification
+    attributes:
+      label: Verification steps
+      description: How findings are validated and where results will be recorded.
+    validations:
+      required: true
