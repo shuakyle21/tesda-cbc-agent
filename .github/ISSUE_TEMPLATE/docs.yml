@@ -1,0 +1,40 @@
+name: Docs
+description: Request documentation updates.
+title: "docs: "
+labels: ["type:docs", "needs-triage"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem statement
+      description: What is unclear, outdated, or missing?
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope boundaries
+      description: Which docs change, and what should remain unchanged?
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: How will we know docs are complete and accurate?
+    validations:
+      required: true
+  - type: textarea
+    id: deps
+    attributes:
+      label: Dependencies / blockers
+      description: Related implementation changes or unresolved decisions.
+    validations:
+      required: true
+  - type: textarea
+    id: verification
+    attributes:
+      label: Verification steps
+      description: Review checks (links, consistency with PLAN/BUILD_CHECKLIST, etc.).
+    validations:
+      required: true

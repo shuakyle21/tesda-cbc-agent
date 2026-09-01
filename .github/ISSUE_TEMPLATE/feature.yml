@@ -1,0 +1,51 @@
+name: Feature
+description: Propose a scoped implementation task.
+title: "feat: "
+labels: ["type:feature", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Respect locked scope decisions in `/home/runner/work/tesda-cbc-agent/tesda-cbc-agent/docs/plans/PLAN.md`.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem statement
+      description: What problem are we solving?
+      placeholder: Describe the user/system problem and current gap.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope boundaries
+      description: What is in scope and explicitly out of scope?
+      placeholder: Must align with locked decisions in PLAN.md.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Clear conditions for done.
+      placeholder: |- 
+        - [ ] Criterion 1
+        - [ ] Criterion 2
+    validations:
+      required: true
+  - type: textarea
+    id: deps
+    attributes:
+      label: Dependencies / blockers
+      description: Upstream issues, fixtures, credentials, external services.
+      placeholder: List issue links and blockers.
+    validations:
+      required: true
+  - type: textarea
+    id: verification
+    attributes:
+      label: Verification steps
+      description: Commands/tests/manual checks to prove completion.
+      placeholder: Include exact commands and expected result.
+    validations:
+      required: true

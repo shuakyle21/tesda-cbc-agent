@@ -110,6 +110,8 @@ of sync with the code.**
 
 - `docs/plans/PLAN.md` — locked scope decisions and the agent workflow design. Read
   this first. `docs/plans/PLANNING_DIAGRAM.md` — the accompanying diagram.
+  `docs/plans/PROJECT_MANAGEMENT.md` — GitHub Project setup, issue taxonomy, labels,
+  automation mapping, and operating cadence for execution tracking.
 - `docs/todos/BUILD_CHECKLIST.md` — the actual build order. Source of truth for "what's
   done."
 - `docs/specs/CBC_DOMAIN_RULES.md` — TESDA domain rules, house rules, and the

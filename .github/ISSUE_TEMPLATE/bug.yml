@@ -1,0 +1,41 @@
+name: Bug
+description: Report a defect that violates expected behavior.
+title: "bug: "
+labels: ["type:bug", "needs-triage"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem statement
+      description: What is broken and what should happen?
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope boundaries
+      description: Affected area and non-goals for the fix.
+      placeholder: Must align with `/home/runner/work/tesda-cbc-agent/tesda-cbc-agent/docs/plans/PLAN.md`.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Conditions that prove the bug is fixed.
+    validations:
+      required: true
+  - type: textarea
+    id: deps
+    attributes:
+      label: Dependencies / blockers
+      description: Related issues, missing fixtures, credentials, or infra constraints.
+    validations:
+      required: true
+  - type: textarea
+    id: verification
+    attributes:
+      label: Verification steps
+      description: Repro steps before fix and checks after fix.
+    validations:
+      required: true

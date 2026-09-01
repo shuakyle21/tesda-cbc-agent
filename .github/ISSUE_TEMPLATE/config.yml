@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Project management guide
+    url: https://github.com/shuakyle21/tesda-cbc-agent/blob/main/docs/plans/PROJECT_MANAGEMENT.md
+    about: Read board fields, labels, automation, and cadence before opening work.
