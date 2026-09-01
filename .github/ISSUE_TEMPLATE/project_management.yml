@@ -1,0 +1,60 @@
+name: Project management
+description: Track planning, sequencing, and delivery coordination across milestones.
+title: "pm: "
+labels: ["type:chore", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for the single tracking issue that coordinates milestone sequencing and blockers.
+        Keep scope aligned with `/home/runner/work/tesda-cbc-agent/tesda-cbc-agent/docs/plans/PLAN.md` and `/home/runner/work/tesda-cbc-agent/tesda-cbc-agent/docs/todos/BUILD_CHECKLIST.md`.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What execution thread does this tracking issue coordinate?
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: Which workstreams are in scope (backend, workflow, data, UI) and what is out of scope?
+    validations:
+      required: true
+  - type: textarea
+    id: plan
+    attributes:
+      label: Ordered execution plan
+      description: List milestone order and dependency-aware sequencing.
+      placeholder: |
+        - [ ] M0 ...
+        - [ ] M1 ...
+        - [ ] M2 ...
+    validations:
+      required: true
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies / blockers
+      description: Cross-issue dependencies, external prerequisites, and current blockers.
+    validations:
+      required: true
+  - type: textarea
+    id: readiness
+    attributes:
+      label: Readiness gates
+      description: What must be true before downstream milestones can start?
+    validations:
+      required: true
+  - type: textarea
+    id: success
+    attributes:
+      label: Success criteria
+      description: How do we verify the project manager issue is serving as the source of truth?
+      placeholder: |
+        - [ ] A clear execution plan exists for the repo.
+        - [ ] Work items are ordered by dependency and priority.
+        - [ ] Progress and blockers can be reviewed in one place.
+    validations:
+      required: true

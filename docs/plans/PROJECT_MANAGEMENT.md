@@ -88,6 +88,7 @@ Apply this label set:
 ## 5) Issue decomposition source
 
 Seed issues from `/home/runner/work/tesda-cbc-agent/tesda-cbc-agent/docs/todos/ISSUE_CANDIDATES.md`.
+For the top-level coordination issue, use `.github/ISSUE_TEMPLATE/project_management.yml`.
 
 Each created issue should include:
 
