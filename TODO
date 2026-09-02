@@ -1,3 +1,15 @@
+SUPERSEDED — kept as a historical record, not actively maintained. This was a one-time
+task handoff (references flat `docs/PLAN.md` etc. paths, predating the 2026-08-19 docs
+reorg into docs/plans, docs/specs, docs/todos, docs/prompts, docs/assets). Its Phase 1-2
+backend bootstrapping is already done — see `docs/todos/BUILD_CHECKLIST.md` §0-1, done
+2026-08-19 on a different branch. Its data-model list (line 4 below: `session_plans`,
+`jobs.kind`, "two required inputs") reflects the pre-reversal schema and needs the same
+migration BUILD_CHECKLIST.md §1's "Schema follow-up" section already tracks — not this
+file. **For current scope and next steps, read `docs/plans/PLAN.md` and
+`docs/todos/BUILD_CHECKLIST.md` instead.**
+
+---
+
 Phase 1: Unblock and establish the contract
 
  Fix the import/redeclaration issue in `/Users/gabz_1/tesda-cbc-agent/backend/app/api/projects.py` and keep the router owned by that module. Use the documented public route `/projects`, removing the current `/api` prefix from `/Users/gabz_1/tesda-cbc-agent/backend/app/main.py` unless a later API versioning decision changes it.

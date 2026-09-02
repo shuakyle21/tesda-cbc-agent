@@ -1,5 +1,19 @@
 # Build Prompt — tesda-cbc-agent
 
+**SUPERSEDED — kept as a historical record, not actively maintained.** This bootstrapped
+the project's first version, and that job is now done by `CLAUDE.md` (the actual
+"fresh session" entry point for this repo). This file has since drifted across several
+eras it was never updated for: it treats Pinecone/local-embeddings RAG as the primary
+grounding mechanism (superseded by TR-grounded traceability, `PLAN.md` §1), models a
+selectable "CBC Module vs Session Plans vs CBLM" run-scoping feature (CBLM is now the
+only output, and neither CBC nor Session Plan is generated at all — `PLAN.md` §1), and
+points at `~/cblm-developer-ui` — a different, violet-monochrome design system than the
+CAMS-inherited palette actually in `DESIGN.md` today. Treat everything below as
+historical context for how this project's thinking evolved, not as current instructions.
+**For current scope, read `PLAN.md` and `CLAUDE.md` instead.**
+
+---
+
 Self-contained. Paste into a fresh session with an empty repo. Assumes no prior context.
 
 ---

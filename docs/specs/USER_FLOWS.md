@@ -23,21 +23,19 @@ flowchart TD
     NEW --> SRC
     OPEN --> SRC
 
-    SRC["<b>Sources</b><br/>add TR (.pdf) + Enhanced CBC (.docx)"]
-    SRC --> CHK{"Usable TR<br/>AND CBC?"}
-    CHK -->|no| BLOCK["<b>Parse stays unreachable</b><br/>panel names what is missing<br/>and why the CBC matters"]
+    SRC["<b>Sources</b><br/>add TR (.pdf) + Enhanced CBC (.docx)<br/>+ Session Plan (.pdf)"]
+    SRC --> CHK{"Usable TR AND<br/>CBC AND Session Plan?"}
+    CHK -->|no| BLOCK["<b>Parse stays unreachable</b><br/>panel names what is missing<br/>and why each source matters"]
     BLOCK --> SRC
-    CHK -->|yes| PARSE["<b>Parse</b> <i>job(kind=parse)</i><br/>parse_tr + parse_cbc<br/>align_sources"]
+    CHK -->|yes| PARSE["<b>Parse</b> &mdash; the only job<br/>parse_tr + parse_cbc + parse_session_plan<br/>align_sources"]
 
-    PARSE --> SEL["<b>Selection</b> &nbsp;&#9208; job boundary<br/>pick unit of competency<br/>pick learning outcome(s)<br/>unmatched TR&#8596;CBC pairs surfaced"]
+    PARSE --> SEL["<b>Review + Select</b> &nbsp;&#9208; <code>awaiting_review</code><br/><i>LangGraph interrupt, not a job boundary</i><br/>review TR&#8596;CBC&#8596;Session-Plan alignment<br/>pick unit of competency + learning outcome(s)"]
     SEL --> COST{"Within run<br/>budget?"}
-    COST -->|no| OVER["<b>Rejected before a job exists</b><br/>Generate disabled<br/>suggests a smaller scope"]
+    COST -->|no| OVER["<b>Rejected before resuming</b><br/>Generate disabled<br/>suggests a smaller LO scope"]
     OVER --> SEL
-    COST -->|yes| GEN["Generate"]
+    COST -->|yes| GEN["Resume &#8594; POST /jobs/{id}/resume"]
 
-    GEN --> RUN1["<b>Run</b> <i>job(kind=generate)</i><br/>drafting_plan"]
-    RUN1 --> REV["<b>Review</b> &nbsp;&#9208; <code>awaiting_review</code><br/>Session Plan shown read-only<br/>approve &#8594; POST /jobs/{id}/resume"]
-    REV -->|approved| RUN2["<b>Run</b> continues<br/>drafting_cblm &#8594; validating &#8594; exporting"]
+    GEN --> RUN2["<b>Run continues</b> &mdash; same job<br/>drafting_cblm &#8594; validating &#8594; exporting"]
     RUN2 --> OUT{"Outcome"}
 
     OUT -->|"all documents ok"| CLEAN["<b>Complete</b><br/>green banner"]
@@ -58,7 +56,7 @@ flowchart TD
     classDef step fill:#1e3a5f,stroke:#4a90d9,color:#fff
     classDef term fill:#333,stroke:#888,color:#fff
 
-    class SRC,SEL,PARSE,RUN1,RUN2,REV,GEN,NEW,OPEN step
+    class SRC,SEL,PARSE,RUN2,GEN,NEW,OPEN step
     class CLEAN,DL ok
     class PART,OVER,BLOCK warn
     class FAIL bad
@@ -77,41 +75,46 @@ so a blocked trainer has spent nothing. The other two sit behind a job that has 
 
 | # | Block | When | Cost | Recovery |
 |---|---|---|---|---|
-| 1 | **Scanned PDF** | inside the upload request | free | Choose another file; the file is not kept |
-| 2 | **Missing TR or CBC** | on the Sources screen | free | Add the missing source |
-| 3 | **Over budget** | on Selection, pre-enqueue of the *generate* job | **parse already spent** — `parse_tr` uses an LLM to structure the TR | Smaller unit, or Session Plans instead of CBLM |
+| 1 | **Scanned PDF / wrong format** | inside the upload request | free | Choose another file; the file is not kept |
+| 2 | **Missing TR, CBC, or Session Plan** | on the Sources screen | free | Add the missing source |
+| 3 | **Over budget** | on Review + Select, pre-resume | **parse already spent** — `parse_tr` uses an LLM to structure the TR | Smaller LO scope |
 | 4 | **Run failed** | mid-pipeline | **spent** | Re-run, or change sources first |
 
-#4 is the only one the trainer cannot see coming. #3 became non-free when Selection moved
-after the parse job — the UC/LO dropdowns are populated from `parsed_structure`, so the TR
-must be parsed before there is anything to pick. That is a deliberate trade: a cheap parse
-buys a selection screen that cannot offer a unit the sources don't contain.
+#4 is the only one the trainer cannot see coming. #3 exists because Selection sits after
+the parse step — the UC/LO dropdowns are populated from `parsed_structure`, so all three
+sources must be parsed and joined before there is anything to pick. That is a deliberate
+trade: a cheap parse buys a review-and-select screen that cannot offer a unit the sources
+don't contain. Unlike the old design, this is now one job's single interrupt, not a
+boundary between two independently-triggered jobs — see `ARCHITECTURE.md` §3 for why that
+distinction is kept even though it costs slightly more machinery.
 
 ```mermaid
 flowchart LR
-    U["Upload a file"] --> V{"Text layer?"}
+    U["Upload a file"] --> V{"Right format?"}
     V -->|no| R1["Rejected in place<br/><i>file not kept</i>"] --> U
     V -->|yes| ROLE{"Role?"}
     ROLE -->|"TR (.pdf)"| FACTS["pdfplumber tables → repair → LLM<br/><b>grounding authority</b>"]
     ROLE -->|"Enhanced CBC (.docx)"| CBC["python-docx, deterministic<br/><b>drives per-LO generation</b>"]
+    ROLE -->|"Session Plan (.pdf)"| SP["pdfplumber tables, deterministic<br/><b>supplies CBLM topic numbering</b>"]
     FACTS --> READY
-    CBC --> READY["Source library"]
+    CBC --> READY
+    SP --> READY["Source library"]
 
     classDef bad fill:#5a1e1e,stroke:#d94a4a,color:#fff
     classDef key fill:#1e3a5f,stroke:#4a90d9,color:#fff
     class R1 bad
-    class FACTS,CBC key
+    class FACTS,CBC,SP key
 ```
 
 **Role is the branch that matters most and the one a trainer is least likely to notice.**
-The two roles are parsed by different code paths and are not interchangeable: a `.docx`
+The three roles are parsed by different code paths and are not interchangeable: a `.docx`
 tagged as TR hits `pdfplumber` and yields nothing. That is why the Add Source modal makes
 role explicit and editable before the file is committed.
 
 **There is no Reference role in the MVP.** Exemplar retrieval was cut along with the vector
 store (`PLAN.md` §1, Grounding + Vector store rows) — style now comes deterministically from
-the 2026 Style Specification Matrix, not from a corpus. Only two uploads exist, and both are
-required.
+the 2026 Style Specification Matrix, not from a corpus. Three uploads exist (TR, CBC,
+Session Plan — REVISED 2026-08-22, was two), all required, none generated.
 
 ---
 
@@ -167,11 +170,11 @@ Second and later visits are much shorter, because sources persist per project.
 ```mermaid
 flowchart LR
     OPEN([Open an existing project]) --> HAS{"Sources still<br/>attached?"}
-    HAS -->|yes| CFG["Selection<br/><i>skip Sources and parse entirely</i>"]
+    HAS -->|yes| CFG["Review + Select<br/><i>skip Sources and parse entirely</i>"]
     HAS -->|no| SRC["Sources"] --> CFG
     CFG --> PICK{"What changed?"}
-    PICK -->|"same unit, other doc type"| G1["Generate CBLM<br/>after Session Plans"]
-    PICK -->|"next unit of competency"| G2["Generate for LO set 2"]
+    PICK -->|"next unit of competency"| G1["Generate CBLM for LO set 2"]
+    PICK -->|"different LO(s), same unit"| G2["Generate CBLM for the new LO set"]
     PICK -->|"nothing — just retrieving"| DOCS["Results → download"]
     G1 --> RUN["Run"]
     G2 --> RUN
@@ -184,10 +187,11 @@ flowchart LR
     class OPEN,WORD term
 ```
 
-**The most common repeat path is Session Plans → then CBLM for the same unit.** That is the
-TM workflow order: plan the session, then build the materials against it. It is also the
-cheapest ordering — 5 calls, review, then 20 — rather than spending 20 first and discovering
-the plan was wrong.
+**The most common repeat path is picking a different LO set and generating CBLM directly**
+— there is no longer a Session-Plan-then-CBLM two-phase order to plan around (Session Plan
+is a fixed upload, not a generated intermediate). This also removed the old "5 calls,
+review, then 20" pacing rationale for that ordering — see `PLAN.md` §1 Session Plan row for
+why.
 
 ---
 
@@ -198,14 +202,16 @@ Things that only become visible once the flows are laid side by side.
 **A trainer can reach Results without ever running anything.** Nav is always available, so
 Results must have a real empty state, not a blank screen. Covered.
 
-**Selection is unreachable without both sources parsed, but Run and Results are not.** A
-trainer can navigate to a previous run's results at any time. That is correct — results are
-durable, Selection is a decision that needs parsed inputs.
+**Selection is unreachable without all three sources parsed, but Run and Results are not.**
+A trainer can navigate to a previous run's results at any time. That is correct — results
+are durable, Selection is a decision that needs parsed inputs.
 
 **Review is a halt, not a block.** `awaiting_review` is the one state where the pipeline is
 healthy and still will not advance: `draft_cblm` runs only after `POST /jobs/{id}/resume`.
 It costs nothing to sit there, but the run is not finished and the trainer is the only thing
-that can move it. It needs a screen for exactly that reason.
+that can move it. It needs a screen for exactly that reason — and it is now the pipeline's
+*only* halt, reviewing the TR↔CBC↔Session-Plan alignment rather than an editable Session
+Plan draft (there's nothing left to edit; Session Plan is a fixed upload).
 
 **Nothing in the product deletes a document.** Re-running overwrites; there is no destructive
 action anywhere in these flows. Worth keeping that way.

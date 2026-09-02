@@ -2,7 +2,10 @@
 
 Source of truth: `SYSTEM_DESIGN.md` §3 and the lifecycle rules in `SYSTEM_DESIGN.md` §5.
 
-**Revised 2026-08-18.** Two required sources, two job kinds, and a human review pause.
+**Revised 2026-08-18, then twice more on 2026-08-22.** Three required sources (TR, CBC,
+Session Plan — all parsed, none generated), **one** job kind spanning parse through
+export, and a single human review pause right after `align_sources` — CBLM is the
+system's only generated output.
 
 These diagrams model the current backend schema and the way it behaves at runtime.
 If the source model changes later, update these diagrams first.
@@ -13,7 +16,6 @@ If the source model changes later, update these diagrams first.
 erDiagram
     projects ||--o{ source_uploads : has
     projects ||--o{ parsed_structures : has
-    jobs ||--o{ session_plans : drafts
     projects ||--o{ jobs : has
     projects ||--o{ generated_documents : owns
     jobs ||--o{ job_events : traces
@@ -43,16 +45,6 @@ erDiagram
         timestamptz created_at
     }
 
-    session_plans {
-        uuid id PK
-        uuid job_id FK
-        text uc_id
-        text lo_id
-        jsonb content
-        timestamptz approved_at
-        timestamptz created_at
-    }
-
     corpus_chunks {
         uuid id PK
         text section_type
@@ -65,7 +57,6 @@ erDiagram
     jobs {
         uuid id PK
         uuid project_id FK
-        text kind
         jsonb checkpoint
         text status
         text error
@@ -101,20 +92,15 @@ erDiagram
 
 ```mermaid
 stateDiagram-v2
-    [*] --> parsing : job(kind=parse) created
+    [*] --> parsing : job created,<br/>POST /projects/id/parse<br/><i>the only job-start endpoint</i>
 
-    parsing --> aligning : both sources parsed
-    parsing --> failed : no usable text / not .docx / parse exception
+    parsing --> aligning : all three sources parsed
+    parsing --> failed : no usable text / not .docx /<br/>bad Session Plan table / parse exception
 
-    aligning --> done : parsed_structure written<br/><i>parse job ends here</i>
-    aligning --> failed : Element/LO join unusable
+    aligning --> awaiting_review : align_sources done,<br/>graph interrupted, checkpoint persisted
+    aligning --> failed : three-way join unusable
 
-    [*] --> drafting_plan : job(kind=generate) created<br/>after UC + LO selection
-
-    drafting_plan --> awaiting_review : Session Plan drafted,<br/>graph interrupted
-    drafting_plan --> failed : uncaught exception
-
-    awaiting_review --> drafting_cblm : POST /jobs/id/resume<br/>(approve or edit)
+    awaiting_review --> drafting_cblm : POST /jobs/id/resume<br/>{ uc_id, lo_ids } — SAME job resumes
 
     drafting_cblm --> validating : all drafts attempted
     drafting_cblm --> failed : uncaught exception
@@ -125,13 +111,16 @@ stateDiagram-v2
     exporting --> done : .docx written to Storage
     exporting --> failed : template render error
 
+    done --> [*]
     failed --> [*]
 
     note right of awaiting_review
         NOT a failure and NOT a stall.
         The RQ job ENDS here; state lives in
-        jobs.checkpoint. Resume enqueues a new job.
+        jobs.checkpoint. Resume enqueues a NEW RQ job
+        that continues the SAME graph run.
         Exclude this status from any job-timeout sweep.
+        No jobs.kind column — one job kind, not two.
     end note
 
     note right of validating
@@ -147,26 +136,29 @@ stateDiagram-v2
     end note
 ```
 
+> **What changed vs the previous version:** the old diagram modeled two disconnected
+> state machines — `job(kind=parse)` ending at `done` on its own, and a separate
+> `job(kind=generate)` starting fresh after `drafting_plan`. That's gone: one job, one
+> continuous state machine, `awaiting_review` sitting where the old `parsing→aligning→done`
+> chain used to terminate.
+
 ## 3. Runtime writes
 
 This diagram shows which tables are written during each major phase.
 
 ```mermaid
 flowchart LR
-    UPLOAD["Source upload (tr + cbc)"] --> T1["source_uploads"]
-    PARSEREQ["Parse request"] --> J0["jobs<br/>kind = parse"]
-    J0 --> PS["parsed_structures"]
-    PS --> SELECT["Human picks UC + LOs"]
-    SELECT --> GENERATE["Generate request"]
-    GENERATE --> J1["jobs<br/>kind = generate"]
-    J1 --> SP["session_plans"]
-    SP --> PAUSE["status = awaiting_review<br/>checkpoint persisted"]
-    PAUSE --> RESUME["POST /jobs/id/resume"] --> J1
+    UPLOAD["Source upload (tr + cbc + session_plan)"] --> T1["source_uploads"]
+    PARSEREQ["Parse request<br/>POST /projects/id/parse"] --> J0["jobs<br/><i>one kind — no jobs.kind column</i>"]
+    J0 --> PS["parsed_structures<br/>incl. per-LO topics from<br/>the parsed Session Plan"]
+    PS --> PAUSE["status = awaiting_review<br/>checkpoint persisted<br/><i>job ends here</i>"]
+    PAUSE --> SELECT["Human reviews alignment,<br/>picks UC + LOs"]
+    SELECT --> RESUME["POST /jobs/id/resume<br/>{ uc_id, lo_ids }"] --> J0
     WORKER["RQ worker / LangGraph"] --> E1["job_events"]
     WORKER --> D1["generated_documents"]
-    WORKER --> C1["corpus_chunks<br/>read only"]
+    WORKER --> C1["corpus_chunks<br/>read only, insurance path"]
 
-    RESUME --> DRAFT["cblm_drafter"]
+    RESUME --> DRAFT["cblm_drafter<br/>topic numbering FROM<br/>parsed_structures, not derived"]
     DRAFT --> HOUSE["apply_house_rules"]
     HOUSE --> VALIDATE["Validator"]
     VALIDATE --> RETRY{"retry_count < 2?"}
@@ -179,22 +171,28 @@ flowchart LR
     classDef decision fill:#f8f5ff,stroke:#534ab7,color:#18180f
     classDef human fill:#f8f5ff,stroke:#534ab7,color:#18180f
 
-    class T1,J0,J1,PS,SP,E1,D1,EXPORT,DONE write
+    class T1,J0,PS,E1,D1,EXPORT,DONE write
     class C1 read
     class RETRY decision
     class SELECT,PAUSE,RESUME human
 ```
+
+> **What changed vs the previous version:** no `session_plans` table write — Session
+> Plan is parsed input, its topics live in `parsed_structures.structure`. One `jobs` row
+> per run, not two (`kind=parse` then `kind=generate`) — `RESUME` loops back into the
+> *same* `J0`, not a new `J1`.
 
 ## 4. Event semantics
 
 ```mermaid
 flowchart TD
     A["job_events row"] --> B{"node_name"}
-    B -->|"parser"| C["Parse TR tables"]
-    B -->|"parse_cbc"| D["Parse CBC .docx"]
-    B -->|"align_sources"| E["Join TR Element to CBC LO"]
-    B -->|"session_plan_drafter"| F["Draft one LO session plan"]
-    B -->|"cblm_drafter"| G["Draft one LO CBLM set"]
+    B -->|"parse_tr"| C["Parse TR tables (LLM)"]
+    B -->|"parse_cbc"| D["Parse CBC .docx (no LLM)"]
+    B -->|"parse_session_plan"| F1["Parse Session Plan tables<br/>(no LLM)"]
+    B -->|"align_sources"| E["Join TR Element to CBC LO<br/>to Session Plan LO heading"]
+    B -->|"cblm_drafter"| G["Draft one LO's<br/>4 CBLM sections"]
+    B -->|"apply_house_rules"| F2["Deterministic post-processing"]
     B -->|"validator"| H["Check structure"]
     B -->|"export"| I["Render and store DOCX"]
 
@@ -218,9 +216,12 @@ flowchart TD
   retriever is a few-shot lookup with no vector store.
 - `awaiting_review` is a normal state, not an error. The RQ job ends at the interrupt and a
   resume enqueues a new one — never hold a worker slot for human latency.
-- Resuming must be idempotent: guard on `session_plans.approved_at` being null.
+- Resuming must be idempotent: guard on `jobs.status` still being `awaiting_review` at
+  resume time — there's no `session_plans.approved_at` to guard on any more, the table is
+  dropped (Session Plan is parsed input, not an editable artifact this system tracks
+  approval for).
 - `generated_documents.content` stores structured content **alongside** the rendered
   `.docx`. This is what keeps the post-MVP chat / "Improve with AI" layer possible without
   re-parsing Word output — see `SYSTEM_DESIGN.md` §9.
 - ~~If you later move to the TR + CBC source model…~~ **Done** — `source_uploads` landed
-  2026-08-18.
+  2026-08-18; extended to a third role (`session_plan`) 2026-08-22.

@@ -2,10 +2,11 @@
 
 Backend first. UI last.
 
-**Revised 2026-08-18** after the CBLM Caravan grilling session. Product model:
-**TR (`.pdf`) + Enhanced CBC (`.docx`) both required inputs**; outputs are Session Plans
-and CBLM sections. The CBC is never generated. Grounding is a traceability chain, not
-exemplar RAG. See `CBC_DOMAIN_RULES.md` for the domain rules and `PLAN.md` §1 for scope.
+**Revised 2026-08-18, then twice more on 2026-08-22.** Product model:
+**TR (`.pdf`) + Enhanced CBC (`.docx`) + trainer's Session Plan (`.pdf`), all three
+required inputs**; CBLM is the only generated output. Neither the CBC nor the Session
+Plan is generated — both are parsed. Grounding is a traceability chain, not exemplar RAG.
+See `CBC_DOMAIN_RULES.md` for the domain rules and `PLAN.md` §1 for scope.
 
 ## 0. Foundation
 
@@ -63,19 +64,30 @@ Gradio scaffold.
 
 ## 3. Parsers
 
-- [ ] Implement upload storage for both roles.
+- [ ] Implement upload storage for all three roles.
 - [ ] TR: synchronous text-layer check; reject scanned PDFs in place.
 - [ ] CBC: format guard — reject anything that is not `.docx`.
+- [ ] Session Plan: format guard — reject anything that isn't a PDF with a recognizable
+      Learning Content column (see `CBC_DOMAIN_RULES.md` §9).
 - [ ] Parse TR tables with `pdfplumber.extract_tables()`; repair whitespace.
 - [ ] Structure TR rows into Pydantic models (LLM), parsed **in full**.
 - [ ] Cache TR structuring output in Redis, keyed by uploaded-file hash — skip
       `pdfplumber` extraction and the LLM call on a repeat upload (capstone rubric:
       caching concept, see `PLAN.md` §1).
 - [ ] Parse CBC with `python-docx` — deterministic, no LLM.
-- [ ] Implement `align_sources`: TR *Element* ↔ CBC *Learning Outcome*.
+- [ ] Parse Session Plan with `pdfplumber.extract_tables()` into `TopicRow` (number,
+      content, subtopics) per LO — **no LLM**: numbering and content are literal on the
+      page, this is extraction, not interpretation. Normalize numbering to canonical
+      `1.1.1` form (`CBC_DOMAIN_RULES.md` §9 — the sample source is internally
+      inconsistent, don't pass that through). Verify against
+      `reference/SAMPLE-session-plan.pdf` the same way TR parsing was verified against
+      the *Organic Agriculture Production NC II* TR.
+- [ ] Implement `align_sources`: TR *Element* ↔ CBC *Learning Outcome* ↔ Session Plan LO
+      heading (three-way join, not two).
 - [ ] Surface unmatched pairs for human confirmation; never guess.
 - [ ] Persist `parsed_structures` as a cache.
-- [ ] Add `GET /projects/{id}/structure` for the dropdown.
+- [ ] Add `GET /projects/{id}/structure` for the dropdown — include each LO's parsed
+      `topics` (from Session Plan) in the response, not just UC/LO titles.
 
 ## 4. Grounding (replaces the Retriever milestone)
 
@@ -87,13 +99,18 @@ Gradio scaffold.
 
 ## 5. LangGraph pipeline
 
-- [ ] Define pipeline state (`PipelineState`, `LOState`, `TopicRow`).
+- [ ] Define pipeline state (`PipelineState`, `LOState`, `TopicRow`) — `TopicRow` is
+      sourced from `parse_session_plan`, not drafted; no `session_plan`/
+      `session_plan_approved` fields (`PLAN.md` §2).
 - [ ] Add `HOUSE_RULES` prompt constant (all drafters).
 - [ ] Add `STYLE_SPEC` prompt constant (**CBLM drafter only**).
-- [ ] Add the session plan drafter node — 7-column matrix, ≥2 methods per topic.
-- [ ] Add the interrupt (`interrupt_before` + checkpointer) and `jobs.checkpoint` persistence.
-- [ ] Add `POST /jobs/{id}/resume`; guard idempotency on `approved_at`.
-- [ ] Add the CBLM drafter node — loops the **approved** plan's topics only.
+- [ ] Add the interrupt (`interrupt_before` + checkpointer) right after `align_sources`,
+      and `jobs.checkpoint` persistence — one job, one graph run, no `parse`/`generate`
+      job-kind split (`SYSTEM_DESIGN.md` §2).
+- [ ] Add `POST /jobs/{id}/resume` taking `{ uc_id, lo_ids }`; guard idempotency on
+      `jobs.status` still being `awaiting_review` at resume time — no `approved_at` to
+      guard on, `session_plans` is dropped (§1 schema follow-up above).
+- [ ] Add the CBLM drafter node — loops the **selected** LO(s)' Session-Plan topics only.
 - [ ] Add `apply_house_rules` deterministic post-processing, incl. AI-use disclosure.
 - [ ] Add the validator node (numbering integrity, traceability, Style Spec §8 for CBLM).
 - [ ] Add bounded retry logic for validation failures.
@@ -106,8 +123,12 @@ Gradio scaffold.
 
 ## 6. Export
 
-- [ ] **Templatize** the two TESDA `.docx` files: strip content, add Jinja tags, preserve
-      styles/headers/footers/tables. *(Startable now — no pipeline code required.)*
+- [ ] **Templatize** the CBLM TESDA `.docx` template(s) — CBLM is the only generated
+      output now, so this no longer includes a Session Plan export template. Exact file
+      count (one combined template vs. one per section type) is still the open question
+      in `CBC_DOMAIN_RULES.md` §7 / `PRD.md` — resolve which files are actually in hand
+      before starting: strip content, add Jinja tags, preserve styles/headers/footers/
+      tables. *(Startable now — no pipeline code required.)*
 - [ ] Render `.docx` with `docxtpl`.
 - [ ] Diff rendered output against the original filled documents for style fidelity.
 - [ ] Store generated files; add download endpoints.
@@ -119,12 +140,15 @@ Gradio scaffold.
       `API_BASE_URL`. Do not mount into the FastAPI app (`mount_gradio_app`
       has known queue/websocket breakage — gradio-app/gradio#2292, #8839).
 - [ ] Add project creation/opening.
-- [ ] Add source upload for both roles (`gr.File` × 2: TR `.pdf`, CBC `.docx`).
+- [ ] Add source upload for all three roles (`gr.File` × 3: TR `.pdf`, CBC `.docx`,
+      Session Plan `.pdf`).
 - [ ] Add the UC / Learning Outcome dropdown from `GET /structure`.
 - [ ] Add job progress polling with `gr.Timer` against job-status, including the
       `awaiting_review` state (not the deprecated `every=` param).
-- [ ] Add Session Plan review/edit + resume as a `gr.Group(visible=...)` step
-      that appears on `awaiting_review` and POSTs to `/jobs/{id}/resume`.
+- [ ] Add TR↔CBC↔Session-Plan alignment review + UC/LO selection as a
+      `gr.Group(visible=...)` step that appears on `awaiting_review` and POSTs
+      `{ uc_id, lo_ids }` to `/jobs/{id}/resume` — no plan content to edit, just review
+      and select.
 - [ ] Surface `GET /jobs/{id}/report` (coverage + validation summary) in the
       job-status view.
 - [ ] Add download links (`gr.DownloadButton`).
@@ -135,12 +159,14 @@ Gradio scaffold.
 ## 8. Done criteria
 
 - [ ] One competency runs end-to-end, including the review pause and resume.
-- [ ] CBLM output matches the **edited** Session Plan, not the original draft.
+- [ ] CBLM output matches the **parsed** Session Plan's topic numbering exactly — no
+      invented, skipped, or renumbered topics.
 - [ ] The job trace is visible in `job_events`.
 - [ ] Partial failures are represented honestly.
 - [ ] The export matches the TESDA template.
 - [ ] Generated documents carry the AI-assistance disclosure.
-- [ ] The UI can start a job, review a plan, resume, and download output.
+- [ ] The UI can start a job, review the TR↔CBC↔Session-Plan alignment, resume, and
+      download output.
 - [ ] Rubric check: 5 of {API, database, background jobs, LLM integration,
       caching, reporting} are implemented and demoable (`PLAN.md` §1).
 
